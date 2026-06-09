@@ -599,6 +599,15 @@ const SKIP_TREE = [
   { label: '8月：夢（記憶なし）', id: 'august_dream_clean' },
   { label: '8月：夜',      id: 'august_night' },
   { label: '9月',          id: 'september_start' },
+  { label: '2年秋：新学期', id: 'autumn_class' },
+  { label: '2年秋：夜',    id: 'autumn_night' },
+  { label: '3年春：進路',  id: 'grade3_start' },
+  { label: '3年春：夜',    id: 'grade3_night' },
+  { label: '3年夏：図書館', id: 'summer3_study' },
+  { label: '3年夏：夜',    id: 'summer3_night' },
+  { label: '卒業',         id: 'graduation' },
+  { label: '卒業の夜',     id: 'graduation_night' },
+  { label: '1章終わり',    id: 'chapter1_end' },
 ];
 
 function openSkipPanel() {

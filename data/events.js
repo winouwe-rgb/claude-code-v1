@@ -685,7 +685,270 @@ const EVENTS = {
     background: 'school-hallway',
     text: `夏休みが終わった。\n{friend}は、いつもと変わらない顔で登校してきた。\nあの夜のことは、何も言わなかった。`,
     choices: null,
-    next: 'chapter1_end'
+    next: 'autumn_class'
+  },
+
+  // ── 2年秋 ───────────────────────────────────────────────
+
+  autumn_class: {
+    month: '2年・秋',
+    title: '新学期',
+    speaker: null,
+    background: 'school-hallway',
+    text: `2年生の秋。クラスが少し変わった。\n{friend}は同じクラスのままだった。\nそれが当たり前のような、少し安心したような、\n妙な感覚があった。`,
+    choices: [
+      {
+        text: '放課後、いつも通り帰ろうと誘う',
+        effects: { trust: 1, seeds: { twoPersonWorld: 1 } },
+        next: 'autumn_class_react_a'
+      },
+      {
+        text: '新しいクラスメートと話す機会を作る',
+        effects: { popularity: 1, seeds: { groupParticipation: 1 } },
+        next: 'autumn_class_react_b'
+      },
+    ]
+  },
+
+  autumn_class_react_a: {
+    month: '2年・秋',
+    title: '',
+    speaker: null,
+    background: 'evening-road',
+    text: `{friend}は「いいよ」と言った。\nいつもと変わらない返事だった。\nそれが、なぜか少しほっとした。`,
+    choices: null,
+    next: 'autumn_night'
+  },
+
+  autumn_class_react_b: {
+    month: '2年・秋',
+    title: '',
+    speaker: null,
+    background: 'school-hallway',
+    text: `{friend}は少し離れたところから、それを見ていた。\n何も言わなかった。`,
+    choices: null,
+    next: 'autumn_night'
+  },
+
+  autumn_night: {
+    month: '2年・秋　夜',
+    title: '',
+    speaker: null,
+    background: 'night-room',
+    text: `新しい季節が始まった。\n今夜、自分は何をするか。`,
+    choices: [
+      {
+        text: '{friend}のことを調べてみる',
+        category: 'study',
+        next: 'grade3_start'
+      },
+      {
+        text: '今日のことを考える',
+        category: 'think',
+        next: 'grade3_start'
+      },
+      {
+        text: '今夜は休む',
+        category: 'rest',
+        next: 'grade3_start'
+      },
+    ]
+  },
+
+  // ── 3年始まり ────────────────────────────────────────────
+
+  grade3_start: {
+    month: '3年・春',
+    title: '進路',
+    speaker: '{friend}',
+    background: 'school-hallway',
+    text: `3年になった。\n廊下に進路希望調査の紙が貼り出された。\n{friend}はそれをじっと見ていた。\n「将来って、決めなきゃいけないのかな」\n独り言みたいだった。`,
+    choices: [
+      {
+        text: '「一緒に考えようか」',
+        effects: { trust: 2, depth: 1 },
+        next: 'grade3_react_a'
+      },
+      {
+        text: '「自分のことは自分で決めるしかないよ」',
+        effects: { friendIndependence: 1, depth: 1 },
+        next: 'grade3_react_b'
+      },
+    ]
+  },
+
+  grade3_react_a: {
+    month: '3年・春',
+    title: '',
+    speaker: '{friend}',
+    background: 'school-hallway',
+    text: `{friend}は少し間を置いてから言った。\n「……一緒に考えてくれるの？」\n聞き返すような言い方だった。`,
+    choices: null,
+    next: 'grade3_night'
+  },
+
+  grade3_react_b: {
+    month: '3年・春',
+    title: '',
+    speaker: null,
+    background: 'school-hallway',
+    text: `{friend}は「そうだね」と言った。\nでも、紙から目を離さなかった。`,
+    choices: null,
+    next: 'grade3_night'
+  },
+
+  grade3_night: {
+    month: '3年・春　夜',
+    title: '',
+    speaker: null,
+    background: 'night-room',
+    text: `進路という言葉が、頭に残っている。\n今夜、自分は何をするか。`,
+    choices: [
+      {
+        text: '進路について調べてみる',
+        category: 'study',
+        next: 'summer3_study'
+      },
+      {
+        text: '{friend}のことを考える',
+        category: 'think',
+        next: 'summer3_study'
+      },
+      {
+        text: '今夜は休む',
+        category: 'rest',
+        next: 'summer3_study'
+      },
+    ]
+  },
+
+  // ── 3年夏休み ────────────────────────────────────────────
+
+  summer3_study: {
+    month: '3年・夏',
+    title: '図書館',
+    speaker: null,
+    background: 'summer-school',
+    text: `受験勉強の夏。\n図書館で{friend}と並んで参考書を開いていた。\n{friend}はページをめくる手が止まることが多かった。\n何を考えているのか、聞けなかった。`,
+    choices: [
+      {
+        text: '声をかける',
+        effects: { trust: 1, depth: 1 },
+        next: 'summer3_react_a'
+      },
+      {
+        text: '黙って隣にいる',
+        effects: { trust: 1, seeds: { twoPersonWorld: 1 } },
+        next: 'summer3_react_b'
+      },
+    ]
+  },
+
+  summer3_react_a: {
+    month: '3年・夏',
+    title: '',
+    speaker: '{friend}',
+    background: 'summer-school',
+    text: `{friend}は少し驚いたように顔を上げた。\n「……なんでもない」\nそう言って、また参考書に目を落とした。\nでも、少しだけ姿勢が変わった。`,
+    choices: null,
+    next: 'summer3_night'
+  },
+
+  summer3_react_b: {
+    month: '3年・夏',
+    title: '',
+    speaker: null,
+    background: 'summer-school',
+    text: `何も言わなかった。\n{friend}も何も言わなかった。\n図書館の時計だけが、静かに進んでいた。`,
+    choices: null,
+    next: 'summer3_night'
+  },
+
+  summer3_night: {
+    month: '3年・夏　夜',
+    title: '',
+    speaker: null,
+    background: 'night-room',
+    text: `図書館の帰り、まだ外が明るかった。\n今夜、自分は何をするか。`,
+    choices: [
+      {
+        text: '受験勉強を続ける',
+        category: 'study',
+        next: 'graduation'
+      },
+      {
+        text: '体を動かして気分転換する',
+        category: 'train',
+        next: 'graduation'
+      },
+      {
+        text: '今夜は休む',
+        category: 'rest',
+        next: 'graduation'
+      },
+    ]
+  },
+
+  // ── 卒業 ────────────────────────────────────────────────
+
+  graduation: {
+    month: '3年・3月',
+    title: '卒業',
+    speaker: null,
+    background: 'spring-day',
+    text: `卒業式の日。\n校庭の隅で{friend}と二人でいた。\n「中学、どうだった？」\n自分から聞いたのは初めてだった。`,
+    choices: [
+      {
+        text: '「楽しかった」',
+        effects: { depth: 1, seeds: { groupHope: 1 } },
+        next: 'graduation_react_a'
+      },
+      {
+        text: '「お前がいたから悪くなかった」',
+        effects: { trust: 2, seeds: { twoPersonWorld: 2, prophecy: 1 } },
+        next: 'graduation_react_b'
+      },
+    ]
+  },
+
+  graduation_react_a: {
+    month: '3年・3月',
+    title: '',
+    speaker: '{friend}',
+    background: 'spring-day',
+    text: `{friend}は少し考えてから言った。\n「……そっか」\n「ぼくも、まあ、悪くなかったかな」\n笑い方が、少しだけ本物に見えた。`,
+    choices: null,
+    next: 'graduation_night'
+  },
+
+  graduation_react_b: {
+    month: '3年・3月',
+    title: '',
+    speaker: '{friend}',
+    background: 'spring-day',
+    text: `{friend}は黙った。\nそれから、小さく言った。\n「……ぼくも」\nそれだけだった。`,
+    choices: null,
+    next: 'graduation_night'
+  },
+
+  graduation_night: {
+    month: '卒業の夜',
+    title: '',
+    speaker: null,
+    background: 'night-room',
+    text: `長い一日が終わった。\n今夜、自分は何をするか。`,
+    choices: [
+      {
+        text: '今日のことを考える',
+        category: 'think',
+        next: 'chapter1_end'
+      },
+      {
+        text: '今夜は休む',
+        category: 'rest',
+        next: 'chapter1_end'
+      },
+    ]
   },
 
   chapter1_end: {
