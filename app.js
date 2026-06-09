@@ -59,6 +59,8 @@ const state = {
   friendPronoun: 'ぼく',
   playCount: 1,
   carryOverSeeds: {},
+  unlockedTitles: ['recorder', 'navigator'], // テスト用：両称号デフォルトON
+  debugMode: true, // テスト用：デフォルトON
   stats: {
     intelligence:      5,
     stamina:           5,
@@ -77,12 +79,41 @@ const state = {
   log:   [],
 };
 
+function hasTitle(id) {
+  return state.unlockedTitles.includes(id);
+}
+
+function formatEffectHint(effects) {
+  if (!effects) return '';
+  const parts = [];
+  const statMap = { intelligence:'知力', stamina:'体力', popularity:'人気', depth:'深み', luck:'運', condition:'調子', trust:'信頼', friendDistance:'距離', friendAnxiety:'不安', friendIndependence:'自立' };
+  Object.entries(effects).forEach(([k, v]) => {
+    if (k === 'seeds') {
+      Object.entries(v).forEach(([sk, sv]) => parts.push(`🌱${SEED_DISPLAY[sk]||sk}+${sv}`));
+    } else if (k === 'flags') {
+      // フラグは表示しない
+    } else if (statMap[k]) {
+      parts.push(`${statMap[k]}${v > 0 ? '+' : ''}${v}`);
+    }
+  });
+  return parts.join(' ');
+}
+
 function replaceName(text) {
   if (!text) return text;
   return text
     .replace(/\{player\}/g, state.playerName)
     .replace(/\{friend\}/g, state.friendName)
     .replace(/\{friendPronoun\}/g, state.friendPronoun);
+}
+
+function getConditionIcon() {
+  const c = state.stats.condition || 0;
+  if (c <= 2)  return '😴';
+  if (c <= 4)  return '😔';
+  if (c <= 6)  return '😐';
+  if (c <= 9)  return '🙂';
+  return '✨';
 }
 
 // ── Night categories ────────────────────────────────────────
@@ -280,6 +311,45 @@ function renderDeepReview(endSeeds, choicesArea) {
   playLabel.style.marginTop = '10px';
   playLabel.textContent = `${state.playCount}周目の記録`;
   section.appendChild(playLabel);
+
+  // この人生で得た称号
+  const earnedTitles = TITLES.filter(t => state.clearedEndings.includes(t.id));
+  if (earnedTitles.length > 0) {
+    const titleLabel = document.createElement('p');
+    titleLabel.className = 'result-seeds-label';
+    titleLabel.style.marginTop = '10px';
+    titleLabel.textContent = 'この人生で得た称号：';
+    section.appendChild(titleLabel);
+
+    earnedTitles.forEach(t => {
+      const row = document.createElement('div');
+      row.className = 'result-seed-row';
+      row.innerHTML = `<div>【${t.name}】</div><div style="font-size:0.75rem;color:var(--text-sub);margin-top:3px;">${t.desc}</div>`;
+      section.appendChild(row);
+    });
+  }
+
+  // 装備中の称号（unlockedTitles）
+  const SPECIAL_TITLES = {
+    navigator: { name: '航海者', desc: '深い海を知る者。章ごとに深層海流へ行ける。' },
+    recorder:  { name: '記録者', desc: '因果を見通す眼を持つ。（特殊称号）' },
+  };
+  const equipped = state.unlockedTitles.filter(id => SPECIAL_TITLES[id]);
+  if (equipped.length > 0) {
+    const eqLabel = document.createElement('p');
+    eqLabel.className = 'result-seeds-label';
+    eqLabel.style.marginTop = '10px';
+    eqLabel.textContent = '装備中の称号：';
+    section.appendChild(eqLabel);
+
+    equipped.forEach(id => {
+      const t = SPECIAL_TITLES[id];
+      const row = document.createElement('div');
+      row.className = 'result-seed-row';
+      row.innerHTML = `<div>【${t.name}】</div><div style="font-size:0.75rem;color:var(--text-sub);margin-top:3px;">${t.desc}</div>`;
+      section.appendChild(row);
+    });
+  }
 
   choicesArea.appendChild(section);
 }
@@ -495,6 +565,158 @@ function renderNameInput() {
   choicesArea.appendChild(btn);
 }
 
+// ── Title system ────────────────────────────────────────────
+
+const TITLES = [
+  {
+    id: 'bystander',
+    name: '傍観者',
+    desc: 'いつも少し離れたところから見ていた。',
+    detail: 'stance_watchフラグ ＋ 距離6以上',
+    check: () =>
+      state.flags.includes('stance_watch') &&
+      (state.stats.friendDistance || 0) >= 6,
+    progress: () => `距離：${state.stats.friendDistance||0}/6`,
+  },
+  {
+    id: 'accomplice',
+    name: '共犯者',
+    desc: '親友の不安に、一緒に乗り続けた。',
+    detail: '二人の世界×3以上 ＋ 不安5以上',
+    check: () =>
+      (state.seeds.twoPersonWorld || 0) >= 3 &&
+      (state.stats.friendAnxiety || 0) >= 5,
+    progress: () => `二人の世界：${state.seeds.twoPersonWorld||0}/3　不安：${state.stats.friendAnxiety||0}/5`,
+  },
+  {
+    id: 'translator',
+    name: '翻訳者',
+    desc: '親友の不安を、現実の形に変えようとした。',
+    detail: '科学技術×2以上 または 集団への希望×2以上',
+    check: () =>
+      (state.seeds.scienceTechnology || 0) >= 2 ||
+      (state.seeds.groupHope || 0) >= 2,
+    progress: () => `科学：${state.seeds.scienceTechnology||0}/2　希望：${state.seeds.groupHope||0}/2`,
+  },
+  {
+    id: 'guardian',
+    name: '保護者',
+    desc: '親友をずっと守ろうとしていた。',
+    detail: '信頼8以上 ＋ 不安4以下',
+    check: () =>
+      (state.stats.trust || 0) >= 8 &&
+      (state.stats.friendAnxiety || 0) <= 4,
+    progress: () => `信頼：${state.stats.trust||0}/8　不安：${state.stats.friendAnxiety||0}（4以下）`,
+  },
+  {
+    id: 'liberator',
+    name: '解放者',
+    desc: '親友が自分の足で立てるよう、背中を押し続けた。',
+    detail: '自立6以上 ＋ 親友自立の種×2以上',
+    check: () =>
+      (state.stats.friendIndependence || 0) >= 6 &&
+      (state.seeds.friendIndependence || 0) >= 2,
+    progress: () => `自立：${state.stats.friendIndependence||0}/6　種：${state.seeds.friendIndependence||0}/2`,
+  },
+];
+
+function computeTitles() {
+  return TITLES.filter(t => t.check());
+}
+
+// ── Chapter 1 End ────────────────────────────────────────────
+
+const HIGHLIGHT_FLAGS = {
+  '家のことを聞いた記憶': '家のことを少し聞いた',
+  '一緒に休んだ記憶':     '一緒に休んだ日があった',
+  '見送った記憶':         '黙って見送った',
+  '部活に戻った記憶':     '部活に戻った',
+};
+
+function renderChapter1End() {
+  document.getElementById('background-area').className = 'bg-summer-sky';
+  document.getElementById('month-label').textContent  = '';
+  document.getElementById('event-title').textContent  = '1章の終わり';
+  document.getElementById('speaker-area').style.visibility = 'hidden';
+
+  const textEl = document.getElementById('event-text');
+  textEl.classList.remove('fade-in');
+  void textEl.offsetWidth;
+  textEl.textContent = '中学三年間が終わった。\nこの人生で、何が残ったか。';
+  textEl.classList.add('fade-in');
+  document.getElementById('text-area').scrollTop = 0;
+
+  const choicesArea = document.getElementById('choices-area');
+  choicesArea.innerHTML = '';
+
+  // 厳選フラグ
+  const hitFlags = Object.entries(HIGHLIGHT_FLAGS)
+    .filter(([flag]) => state.flags.includes(flag));
+
+  if (hitFlags.length > 0) {
+    const flagLabel = document.createElement('p');
+    flagLabel.className = 'result-seeds-label';
+    flagLabel.textContent = 'この人生の記憶：';
+    choicesArea.appendChild(flagLabel);
+
+    hitFlags.forEach(([, text]) => {
+      const row = document.createElement('div');
+      row.className = 'result-seed-row fade-in';
+      row.textContent = `◆ ${text}`;
+      choicesArea.appendChild(row);
+    });
+  }
+
+  // 残った種
+  const activeSeeds = Object.entries(state.seeds).filter(([, v]) => v > 0);
+  if (activeSeeds.length > 0) {
+    const seedLabel = document.createElement('p');
+    seedLabel.className = 'result-seeds-label';
+    seedLabel.style.marginTop = '10px';
+    seedLabel.textContent = '育った種：';
+    choicesArea.appendChild(seedLabel);
+
+    activeSeeds.forEach(([k, v]) => {
+      const row = document.createElement('div');
+      row.className = 'result-seed-row fade-in';
+      row.textContent = `🌱 ${SEED_DISPLAY[k] || k}  ×${v}`;
+      choicesArea.appendChild(row);
+    });
+  }
+
+  const btn = makeBtn('深層海流へ', 'choice-btn continue-btn');
+  btn.style.marginTop = '12px';
+  btn.addEventListener('click', () => {
+    // 称号をstateに保存
+    const earned = computeTitles();
+    earned.forEach(t => {
+      if (!state.clearedEndings.includes(t.id)) {
+        state.clearedEndings.push(t.id);
+      }
+    });
+    renderEvent('deep_current');
+  });
+
+  // 称号表示
+  const earned = computeTitles();
+  if (earned.length > 0) {
+    const titleLabel = document.createElement('p');
+    titleLabel.className = 'result-seeds-label';
+    titleLabel.style.marginTop = '10px';
+    titleLabel.textContent = 'この人生の称号：';
+    choicesArea.appendChild(titleLabel);
+
+    earned.forEach(t => {
+      const row = document.createElement('div');
+      row.className = 'result-seed-row fade-in';
+      row.textContent = `【${t.name}】${t.desc}`;
+      choicesArea.appendChild(row);
+    });
+  }
+
+  choicesArea.appendChild(btn);
+}
+
 // ── Rendering ───────────────────────────────────────────────
 
 function renderEvent(eventId) {
@@ -507,6 +729,11 @@ function renderEvent(eventId) {
 
   if (eventId === 'deep_current') {
     renderDeepCurrent();
+    return;
+  }
+
+  if (eventId === 'chapter1_end') {
+    renderChapter1End();
     return;
   }
 
@@ -528,7 +755,8 @@ function renderEvent(eventId) {
 
   // Header
   document.getElementById('month-label').textContent  = event.month;
-  document.getElementById('event-title').textContent  = event.title || '';
+  const condIcon = (event.month || '').includes('夜') ? getConditionIcon() : '';
+  document.getElementById('event-title').textContent  = condIcon ? `${condIcon} ${event.title || ''}` : (event.title || '');
 
   // Speaker
   const speakerArea = document.getElementById('speaker-area');
@@ -566,10 +794,23 @@ function renderEvent(eventId) {
       !c.flagRequired || state.flags.includes(c.flagRequired)
     );
     visibleChoices.forEach((choice, i) => {
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'display:flex;align-items:center;gap:6px;margin-bottom:0;';
+
       const btn = makeBtn(replaceName(choice.text), 'choice-btn fade-in');
       btn.style.animationDelay = `${i * 0.08}s`;
+      btn.style.flex = '1';
       btn.addEventListener('click', () => handleChoice(event, choice));
-      choicesArea.appendChild(btn);
+      wrapper.appendChild(btn);
+
+      if (state.debugMode && hasTitle('recorder') && choice.effects) {
+        const hint = document.createElement('span');
+        hint.className = 'debug-effect-hint';
+        hint.textContent = formatEffectHint(choice.effects);
+        wrapper.appendChild(hint);
+      }
+
+      choicesArea.appendChild(wrapper);
     });
   }
 }
@@ -903,6 +1144,110 @@ function closeSkipPanel() {
 }
 
 document.getElementById('skip-toggle').addEventListener('click', openSkipPanel);
+
+// ── Debug panel ─────────────────────────────────────────────
+
+function openDebugPanel() {
+  if (!hasTitle('recorder')) return;
+
+  const overlay = document.getElementById('panel-overlay');
+  const panel   = document.createElement('div');
+  panel.id = 'debug-panel';
+  panel.style.cssText = `
+    position:fixed;top:0;left:0;width:min(340px,92vw);height:100dvh;
+    background:var(--panel-bg);border-right:1px solid rgba(255,255,255,0.08);
+    z-index:100;display:flex;flex-direction:column;overflow-y:auto;
+    padding:12px 14px 20px;
+  `;
+
+  const header = document.createElement('div');
+  header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;';
+  const title = document.createElement('span');
+  title.textContent = '🔍 記録者の眼';
+  title.style.cssText = 'font-size:0.85rem;color:var(--accent);font-weight:bold;';
+  const closeBtn = makeBtn('✕', '');
+  closeBtn.style.cssText = 'background:none;border:none;color:var(--text-sub);font-size:1.1rem;cursor:pointer;';
+  closeBtn.addEventListener('click', closeDebugPanel);
+  header.appendChild(title);
+  header.appendChild(closeBtn);
+  panel.appendChild(header);
+
+  // 選択肢効果表示のON/OFF
+  const toggleRow = document.createElement('div');
+  toggleRow.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:12px;';
+  const toggleLabel = document.createElement('span');
+  toggleLabel.style.cssText = 'font-size:0.78rem;color:var(--text-sub);';
+  toggleLabel.textContent = '選択肢効果表示';
+  const toggleBtn = makeBtn(state.debugMode ? 'ON' : 'OFF', 'choice-btn');
+  toggleBtn.style.cssText = `padding:4px 12px;font-size:0.75rem;background:${state.debugMode ? 'var(--accent-dim)' : 'rgba(255,255,255,0.06)'};`;
+  toggleBtn.addEventListener('click', () => {
+    state.debugMode = !state.debugMode;
+    closeDebugPanel();
+    openDebugPanel();
+    renderEvent(state.currentEventId);
+  });
+  toggleRow.appendChild(toggleLabel);
+  toggleRow.appendChild(toggleBtn);
+  panel.appendChild(toggleRow);
+
+  // 称号条件
+  const titleHeader = document.createElement('p');
+  titleHeader.className = 'result-seeds-label';
+  titleHeader.textContent = '称号の条件：';
+  panel.appendChild(titleHeader);
+
+  TITLES.forEach(t => {
+    const row = document.createElement('div');
+    row.className = 'result-seed-row';
+    row.style.marginBottom = '5px';
+    const achieved = t.check();
+    row.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="opacity:${achieved ? 1 : 0.6}">${achieved ? '✓' : '　'}【${t.name}】</span>
+    </div>
+    <div style="font-size:0.7rem;color:var(--text-sub);margin-top:2px;">${t.detail}</div>
+    <div style="font-size:0.7rem;color:var(--accent);margin-top:2px;">${t.progress()}</div>`;
+    panel.appendChild(row);
+  });
+
+  // 現在のイベントのeffects
+  const eventHeader = document.createElement('p');
+  eventHeader.className = 'result-seeds-label';
+  eventHeader.style.marginTop = '14px';
+  eventHeader.textContent = '現在の選択肢効果：';
+  panel.appendChild(eventHeader);
+
+  const currentEvent = EVENTS[state.currentEventId];
+  if (currentEvent && currentEvent.choices) {
+    currentEvent.choices.forEach(c => {
+      const row = document.createElement('div');
+      row.className = 'result-seed-row';
+      row.style.marginBottom = '5px';
+      row.style.fontSize = '0.75rem';
+      const effectText = c.effects ? formatEffectHint(c.effects) : 'なし';
+      row.textContent = `「${replaceName(c.text)}」→ ${effectText || 'なし'}`;
+      panel.appendChild(row);
+    });
+  } else {
+    const empty = document.createElement('p');
+    empty.className = 'empty-note';
+    empty.textContent = '選択肢なし';
+    panel.appendChild(empty);
+  }
+
+  document.getElementById('app').appendChild(panel);
+  overlay.classList.remove('hidden');
+  overlay.onclick = closeDebugPanel;
+}
+
+function closeDebugPanel() {
+  const panel = document.getElementById('debug-panel');
+  if (panel) panel.remove();
+  document.getElementById('panel-overlay').classList.add('hidden');
+  document.getElementById('panel-overlay').onclick = null;
+}
+
+document.getElementById('debug-toggle').addEventListener('click', openDebugPanel);
+document.getElementById('deep-toggle').addEventListener('click', () => renderEvent('deep_current'));
 
 // ── Start ───────────────────────────────────────────────────
 

@@ -462,6 +462,66 @@ html, body {
   border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 
+.bg-deep-current { background: linear-gradient(175deg, #020818 0%, #051530 30%, #0a2545 60%, #051020 100%); }
+
+/* Deep current UI */
+.deep-tab-row {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.deep-tab-btn {
+  flex: 1;
+  padding: 7px 4px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
+  color: var(--text-sub);
+  font-size: 0.78rem;
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.deep-tab-btn.active {
+  background: var(--accent-dim);
+  border-color: rgba(232,168,124,0.5);
+  color: var(--accent);
+}
+
+.deep-section {
+  padding: 4px 2px;
+}
+
+.deep-seed-row {
+  padding: 7px 12px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: var(--text-sub);
+  margin-bottom: 5px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.deep-seed-row.selected {
+  background: rgba(232,168,124,0.15);
+  border-color: rgba(232,168,124,0.4);
+  color: var(--accent);
+}
+
+/* Debug effect hint */
+.debug-effect-hint {
+  font-size: 0.68rem;
+  color: var(--accent);
+  white-space: nowrap;
+  min-width: 60px;
+  text-align: right;
+  opacity: 0.8;
+}
+
 @media (min-height: 700px) {
   #background-area { min-height: 200px; }
 }
