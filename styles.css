@@ -29,6 +29,7 @@ html, body {
 
 #app {
   height: 100dvh;
+  max-height: -webkit-fill-available;
   max-width: 480px;
   margin: 0 auto;
   display: flex;
