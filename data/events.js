@@ -1,0 +1,571 @@
+// data/events.js
+const EVENTS = {
+
+  // ── プロローグ ───────────────────────────────────────────
+
+  prologue_start: {
+    month: '',
+    title: '',
+    speaker: null,
+    background: 'spring-day',
+    text: `中学に上がる春。\n制服がまだ少し大きかった。\n\n親友とは、小学校からなんとなく一緒にいる。\n約束したわけじゃない。\n気づいたら、そこにいた。`,
+    choices: null,
+    next: 'prologue_q1'
+  },
+
+  prologue_q1: {
+    month: '',
+    title: '',
+    speaker: null,
+    background: 'spring-day',
+    text: `こいつといると、自分は——`,
+    choices: [
+      {
+        text: '落ち着く',
+        effects: { intelligence: 2, depth: 2, flags: ['protagonist_observer'] },
+        next: 'prologue_q1_a'
+      },
+      {
+        text: '放っておけない',
+        effects: { intelligence: 2, popularity: 2, flags: ['protagonist_translator'] },
+        next: 'prologue_q1_b'
+      },
+      {
+        text: 'なんか、楽',
+        effects: { stamina: 2, trust: 2, flags: ['protagonist_companion'] },
+        next: 'prologue_q1_c'
+      },
+    ]
+  },
+
+  prologue_q1_a: {
+    month: '',
+    title: '',
+    speaker: null,
+    background: 'spring-day',
+    text: `急かされない。それが心地よかった。`,
+    choices: null,
+    next: 'prologue_q2'
+  },
+
+  prologue_q1_b: {
+    month: '',
+    title: '',
+    speaker: null,
+    background: 'spring-day',
+    text: `なぜかは、うまく言えない。\nただ、目が離せなかった。`,
+    choices: null,
+    next: 'prologue_q2'
+  },
+
+  prologue_q1_c: {
+    month: '',
+    title: '',
+    speaker: null,
+    background: 'spring-day',
+    text: `難しいことを考えなくていい。\n一緒にいるだけでよかった。`,
+    choices: null,
+    next: 'prologue_q2'
+  },
+
+  prologue_q2: {
+    month: '',
+    title: '',
+    speaker: null,
+    background: 'spring-day',
+    text: `親友はいつも笑っている。\nでも、その笑い方には——`,
+    choices: [
+      {
+        text: 'ときどき、取り繕った感じがある',
+        effects: { friendAnxiety: 1, flags: ['friend_lighttalk'] },
+        next: 'prologue_q2_result'
+      },
+      {
+        text: 'あまり多くを語らない感じがある',
+        effects: { friendDistance: 2, flags: ['friend_quiet'] },
+        next: 'prologue_q2_result'
+      },
+    ]
+  },
+
+  prologue_q2_result: {
+    month: '',
+    title: '',
+    speaker: null,
+    background: 'spring-day',
+    text: `気づいているのか、気づいていないのか。\n親友は今日も、こっちを見て笑った。`,
+    choices: null,
+    next: 'prologue_q3'
+  },
+
+  prologue_q3: {
+    month: '',
+    title: '',
+    speaker: null,
+    background: 'spring-day',
+    text: `気になっても、自分は——`,
+    choices: [
+      {
+        text: 'だいたい黙って見ている',
+        effects: { depth: 1, flags: ['stance_watch'] },
+        next: 'prologue_q3_result'
+      },
+      {
+        text: 'つい何か言いたくなる',
+        effects: { popularity: 1, flags: ['stance_speak'] },
+        next: 'prologue_q3_result'
+      },
+    ]
+  },
+
+  prologue_q3_result: {
+    month: '4月',
+    title: '',
+    speaker: null,
+    background: 'spring-day',
+    text: `中学生活が、もうすぐ始まる。`,
+    choices: null,
+    next: 'april_mid'
+  },
+
+  // ── 4月 ─────────────────────────────────────────────────
+
+  april_mid: {
+    month: '4月中旬',
+    title: '部活紹介プリント',
+    speaker: '親友',
+    background: 'school-hallway',
+    text: `放課後、部活紹介のプリントが配られた。\nバスケ部の先輩が教室の入り口から顔を出す。\n「見学だけでもいいから来てみない？」\n親友はプリントをのぞき込む。\n「バスケ、やったことないけど見るだけならありかも」`,
+    choices: [
+      {
+        text: '一緒に見学へ行く',
+        effects: { stamina: 1, trust: 2 },
+        next: 'april_mid_react_a'
+      },
+      {
+        text: 'まず他の部も見て回る',
+        effects: { intelligence: 1, depth: 1 },
+        next: 'april_mid_react_b'
+      },
+    ]
+  },
+
+  april_mid_react_a: {
+    month: '4月中旬',
+    title: '',
+    speaker: null,
+    background: 'school-hallway',
+    text: `体育館に入ると、親友は少しだけ背筋を伸ばした。\nたぶん、自分でも気づいていない。`,
+    choices: null,
+    next: 'april_night'
+  },
+
+  april_mid_react_b: {
+    month: '4月中旬',
+    title: '',
+    speaker: null,
+    background: 'school-hallway',
+    text: `親友は「そうだね」と言った。\nそれきり、プリントを鞄にしまった。`,
+    choices: null,
+    next: 'april_night'
+  },
+
+  april_night: {
+    month: '4月',
+    title: '帰り道',
+    speaker: '親友',
+    background: 'evening-road',
+    text: `帰り道、親友はプリントを折りながら言った。\n「部活って、決めたら毎日行く感じなのかな」\n軽い口調だったけれど、返事を待っているようにも見えた。`,
+    choices: [
+      {
+        text: 'みんなでやるのも楽しそうだと言う',
+        effects: { popularity: 1, seeds: { groupParticipation: 1 } },
+        next: 'april_night_react_a'
+      },
+      {
+        text: '無理に決めなくていいと言う',
+        effects: { trust: 2, seeds: { twoPersonWorld: 1 } },
+        next: 'april_night_react_b'
+      },
+    ]
+  },
+
+  april_night_react_a: {
+    month: '4月',
+    title: '',
+    speaker: null,
+    background: 'evening-road',
+    text: `親友は少し考えてから、「かもね」と言った。\n否定はしなかった。`,
+    choices: null,
+    next: 'april_night_own'
+  },
+
+  april_night_react_b: {
+    month: '4月',
+    title: '',
+    speaker: null,
+    background: 'evening-road',
+    text: `親友は「そっか」とだけ言った。\n少し、ほっとしたように見えた。`,
+    choices: null,
+    next: 'april_night_own'
+  },
+
+  april_night_own: {
+    month: '4月　夜',
+    title: '',
+    speaker: null,
+    background: 'night-room',
+    text: `帰ってから、しばらく天井を見ていた。\n今日のこと、どう受け取るか。`,
+    choices: [
+      {
+        text: '部活について調べてみる',
+        category: 'study',
+        next: 'may_ball'
+      },
+      {
+        text: '親友のこと、少し考える',
+        category: 'think',
+        next: 'may_ball'
+      },
+      {
+        text: '今日は疲れたので休む',
+        category: 'rest',
+        next: 'may_ball'
+      },
+    ]
+  },
+
+  // ── 5月 ─────────────────────────────────────────────────
+
+  may_ball: {
+    month: '5月',
+    title: 'ボール、全然こないんだけど',
+    speaker: '親友',
+    background: 'school-grounds',
+    text: `バスケ部の練習は、少しずつ本格的になってきた。\n帰り道、親友がふいに言った。\n「ボール、全然こないんだけど」\n少し大げさに肩を落として、それから笑う。\n「立ってるだけなら、家で漫画読んでる方が上手くなれそうじゃない？」\n冗談みたいな言い方だった。\n本当に飽きただけのようにも見える。少し無理をしているようにも見える。`,
+    choices: [
+      {
+        text: '「慣れたら回ってくるよ」',
+        effects: { stamina: 1, friendAnxiety: 1, flags: ['もう少し頑張ればと言われた'] },
+        next: 'may_ball_react_a'
+      },
+      {
+        text: '「じゃあ別のこと探す？」',
+        effects: { depth: 1, flags: ['逃げ道を示された'], seeds: { clubWithdrawal: 1 } },
+        next: 'may_ball_react_b'
+      },
+      {
+        text: '「本当はしんどい？」',
+        effects: { depth: 1, trust: 1, friendAnxiety: 1, flags: ['軽い嘘に気づいた'] },
+        next: 'may_ball_react_c'
+      },
+      {
+        text: '「確かに暇そうだったな」',
+        effects: { popularity: 1, flags: ['軽く流された記憶'], seeds: { twoPersonWorld: 1 } },
+        next: 'may_ball_react_d'
+      },
+    ]
+  },
+
+  may_ball_react_a: {
+    month: '5月',
+    title: '',
+    speaker: null,
+    background: 'school-grounds',
+    text: `親友は「そうかな」と言った。\n少し間があって、「まあ、そうだね」と続けた。\n納得したのか、自分を納得させたのか、分からなかった。`,
+    choices: null,
+    next: 'may_night'
+  },
+
+  may_ball_react_b: {
+    month: '5月',
+    title: '',
+    speaker: null,
+    background: 'school-grounds',
+    text: `親友は「別のこと」という言葉を少し転がすように黙った。\n「なんかあるかな」\n探しているのか、逃げ道を確認しているのか、判断がつかなかった。`,
+    choices: null,
+    next: 'may_night'
+  },
+
+  may_ball_react_c: {
+    month: '5月',
+    title: '',
+    speaker: '親友',
+    background: 'school-grounds',
+    text: `親友は一瞬、笑うのを止めた。\n「……しんどくはないけど」\n「ただ、なんか、思ってたのと違う感じ」\nそれだけ言って、また歩き出した。`,
+    choices: null,
+    next: 'may_night'
+  },
+
+  may_ball_react_d: {
+    month: '5月',
+    title: '',
+    speaker: null,
+    background: 'school-grounds',
+    text: `親友は「だよね」と笑った。\nそれで話は終わった。\nたぶん、それでよかった。たぶん。`,
+    choices: null,
+    next: 'may_night'
+  },
+
+  may_night: {
+    month: '5月　夜',
+    title: '',
+    speaker: null,
+    background: 'night-room',
+    text: `中学生活には少し慣れてきた。\n今夜、自分は何をするか。`,
+    choices: [
+      {
+        text: 'あいつがついてこれるよう自主練する',
+        category: 'train',
+        effects: { flags: ['自主練した'] },
+        next: 'june_family'
+      },
+      {
+        text: 'クラスであいつの様子を探る',
+        category: 'search',
+        next: 'june_family'
+      },
+      {
+        text: '今日の親友のこと、考える',
+        category: 'think',
+        next: 'june_family'
+      },
+      {
+        text: 'あの嘘、本当のことを考える',
+        category: 'think',
+        next: 'june_family'
+      },
+      {
+        text: '何も考えないようにする',
+        category: 'rest',
+        next: 'june_family'
+      },
+    ]
+  },
+
+  // ── 6月 ─────────────────────────────────────────────────
+
+  june_family: {
+    month: '6月',
+    title: '今日はちょっと家の用事',
+    speaker: '親友',
+    background: 'school-gate',
+    text: `親友は、今日はいつもより少しだけ荷物をまとめるのが早かった。\n「ごめん。今日、ちょっと家の用事」\nそう言ってから、少し考えるように足元を見る。\n「あと、なんか足も痛い気がする。たぶん成長痛」\n言い方は軽い。嘘なら、もう少し上手につけばいいのにと思うくらいには、分かりやすかった。\nでも、本人はそれで隠せているつもりらしい。`,
+    choices: [
+      {
+        text: '「分かった。無理すんなよ」',
+        effects: { depth: 1, trust: 1, flags: ['そっとされた記憶'] },
+        next: 'june_family_react_a'
+      },
+      {
+        text: '「本当に家の用事？」',
+        effects: { depth: 1, friendAnxiety: 1, flags: ['嘘を疑われた記憶'] },
+        next: 'june_family_react_b'
+      },
+      {
+        text: '「じゃあ、自分も今日は休む」',
+        effects: { trust: 1, seeds: { twoPersonWorld: 1 }, flags: ['一緒に休んだ記憶'] },
+        next: 'june_family_react_c'
+      },
+      {
+        text: '「自分は部活行ってくる」',
+        effects: { stamina: 1, friendIndependence: 1, flags: ['置いていかれた記憶'] },
+        next: 'june_family_react_d'
+      },
+      {
+        text: '「帰りに少し練習しない？」',
+        flagRequired: '自主練した',
+        effects: { trust: 1, flags: ['河川敷に誘った'] },
+        next: 'june_family_react_e'
+      },
+    ]
+  },
+
+  june_family_react_e: {
+    month: '6月',
+    title: '',
+    speaker: '親友',
+    background: 'school-gate',
+    text: `親友は少し間を置いた。\n「……練習って、バスケ？」\n「まあ、軽くでいいけど」\nそう言ってから、ちょっとだけ迷うような顔をした。`,
+    choices: null,
+    next: 'june_family_react_e_branch'
+  },
+
+  june_family_react_e_branch: {
+    month: '6月',
+    title: '',
+    speaker: null,
+    background: 'evening-road',
+    text: null,
+    choices: null,
+    type: 'branch',
+    branch: {
+      condition: 'groupVsTwoWorld',
+      ifTrue:  'june_practice_a',
+      ifFalse: 'june_practice_b'
+    }
+  },
+
+  june_practice_a: {
+    month: '6月',
+    title: '',
+    speaker: null,
+    background: 'school-grounds',
+    text: `近くの公園で少しだけシュートを打った。\nうまくはなかった。でも、親友は最後まで付き合った。\n翌週から、親友は部活を休まなくなった。\n理由は言わなかった。`,
+    effects: { stamina: 1, seeds: { groupParticipation: 2 }, flags: ['河川敷で投げた記憶', '部活に戻った記憶'] },
+    choices: null,
+    next: 'june_end'
+  },
+
+  june_practice_b: {
+    month: '6月',
+    title: '',
+    speaker: '親友',
+    background: 'school-grounds',
+    text: `近くの公園で少しだけシュートを打った。\nしばらく無言で続けていたら、親友がふいに言った。\n「うち、ちょっとごたごたしててさ」\nそれだけだった。でも、言えたことが、何かを少し軽くしたようだった。`,
+    effects: { trust: 2, depth: 1, friendAnxiety: -1, flags: ['河川敷で投げた記憶', '家のことを聞いた記憶'] },
+    choices: null,
+    next: 'june_end'
+  },
+
+  june_family_react_a: {
+    title: '',
+    speaker: null,
+    background: 'school-gate',
+    text: `親友は「うん」と言った。\n短かった。でも、少しだけ肩の力が抜けたように見えた。`,
+    choices: null,
+    next: 'june_end'
+  },
+
+  june_family_react_b: {
+    month: '6月',
+    title: '',
+    speaker: '親友',
+    background: 'school-gate',
+    text: `親友は一瞬だけ目が泳いだ。\n「……家の用事だって」\n繰り返した。今度は少しだけ、声が固かった。`,
+    choices: null,
+    next: 'june_end'
+  },
+
+  june_family_react_c: {
+    month: '6月',
+    title: '',
+    speaker: '親友',
+    background: 'school-gate',
+    text: `「え、いいの？」\n親友は少し驚いた顔をした。\nそれから、「……ありがと」と小さく言った。`,
+    choices: null,
+    next: 'june_end'
+  },
+
+  june_family_react_d: {
+    month: '6月',
+    title: '',
+    speaker: null,
+    background: 'school-gate',
+    text: `「あ、そっか。うん、行ってきな」\n親友はそう言って、先に歩き出した。\n後ろ姿は、いつもより少し小さく見えた。`,
+    choices: null,
+    next: 'june_end'
+  },
+
+  june_end: {
+    month: '6月終わり',
+    title: '',
+    speaker: null,
+    background: 'rainy-evening',
+    text: `その日の帰り道は、少しだけいつもと違っていた。\nバスケ部の話になると、親友は少しだけ笑うのが早くなった。\n「まあ、まだ辞めるとかじゃないけどさ」\nその言い方も、軽かった。軽すぎるくらいに。`,
+    choices: null,
+    next: 'june_night'
+  },
+
+  june_night: {
+    month: '6月　夜',
+    title: '',
+    speaker: null,
+    background: 'night-room',
+    text: `雨の音が窓の外にある。\n今日のことを、どう整理するか。`,
+    choices: [
+      {
+        text: '人が傷つく理由について、検索してみる',
+        category: 'study',
+        next: 'july_try'
+      },
+      {
+        text: '何も考えず、早く寝る',
+        category: 'rest',
+        next: 'july_try'
+      },
+      {
+        text: '今日のあいつの顔を、ずっと考えている',
+        category: 'think',
+        next: 'july_try'
+      },
+    ]
+  },
+
+  // ── 7月 ─────────────────────────────────────────────────
+
+  july_try: {
+    month: '7月',
+    title: '一回だけ、ちゃんとやる',
+    speaker: '親友',
+    background: 'summer-school',
+    text: `7月に入って、部活の雰囲気が少し変わった。試合が近いらしく、練習に声が増えた。\n親友は珍しく、自分から言った。\n「一回だけ、ちゃんとやってみようかな」\n理由は言わなかった。ただ、いつもより少しだけ早く家を出た日があった。`,
+    choices: [
+      {
+        text: '一緒に行く',
+        effects: { stamina: 1, trust: 1, flags: ['一緒に行った記憶'] },
+        next: 'july_try_react_a'
+      },
+      {
+        text: '背中を押す',
+        effects: { depth: 1, friendAnxiety: 1, flags: ['背中を押した記憶'] },
+        next: 'july_try_react_b'
+      },
+      {
+        text: '何も言わずに見送る',
+        effects: { friendIndependence: 1, flags: ['見送った記憶'] },
+        next: 'july_try_react_c'
+      },
+    ]
+  },
+
+  july_try_react_a: {
+    month: '7月',
+    title: '',
+    speaker: null,
+    background: 'summer-school',
+    text: `体育館に着くと、親友は少し照れたように「来たの」と言った。\n来て正解だったのかどうか、その日の練習が終わるまで分からなかった。`,
+    choices: null,
+    next: 'july_result'
+  },
+
+  july_try_react_b: {
+    month: '7月',
+    title: '',
+    speaker: null,
+    background: 'summer-school',
+    text: `親友はうなずいた。\n「うん、やってみる」\n言葉は短かった。でも、少しだけ目が違った。`,
+    choices: null,
+    next: 'july_result'
+  },
+
+  july_try_react_c: {
+    month: '7月',
+    title: '',
+    speaker: null,
+    background: 'summer-school',
+    text: `親友の背中が遠くなる。\n振り返らなかった。\nそれが、答えなのかもしれなかった。`,
+    choices: null,
+    next: 'july_result'
+  },
+
+  july_result: {
+    month: '7月',
+    title: '夏の始まり',
+    speaker: null,
+    background: 'summer-sky',
+    text: null,
+    choices: null,
+    type: 'result'
+  }
+};

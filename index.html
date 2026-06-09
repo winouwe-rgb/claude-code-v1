@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0d0d1e">
+  <title>WATATUMI</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- Main game area -->
+    <div id="game-container">
+
+      <header id="header">
+        <span id="month-label"></span>
+        <span id="event-title"></span>
+        <button id="panel-toggle" aria-label="ステータス">📊</button>
+      </header>
+
+      <div id="background-area" class="bg-spring-day"></div>
+
+      <div id="speaker-area">
+        <span id="speaker-name"></span>
+      </div>
+
+      <div id="text-area">
+        <p id="event-text"></p>
+      </div>
+
+      <div id="choices-area"></div>
+
+    </div>
+
+    <!-- Side panel -->
+    <aside id="side-panel" class="hidden" aria-label="ステータスパネル">
+
+      <div id="panel-header">
+        <h2>ステータス</h2>
+        <button id="panel-close" aria-label="閉じる">✕</button>
+      </div>
+
+      <div id="panel-content">
+
+        <section class="panel-section">
+          <h3>主人公</h3>
+          <div id="protagonist-stats"></div>
+        </section>
+
+        <section class="panel-section">
+          <h3>親友</h3>
+          <div id="friend-stats"></div>
+        </section>
+
+        <section class="panel-section">
+          <h3>種</h3>
+          <div id="seeds-list"></div>
+        </section>
+
+        <section class="panel-section">
+          <h3>フラグ</h3>
+          <div id="flags-list"></div>
+        </section>
+
+        <section class="panel-section">
+          <h3>ログ</h3>
+          <div id="log-list"></div>
+        </section>
+
+      </div>
+    </aside>
+
+    <div id="panel-overlay" class="hidden"></div>
+
+  </div>
+
+  <script src="data/events.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
