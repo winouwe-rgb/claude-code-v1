@@ -536,7 +536,7 @@ const EVENTS = {
     background: 'summer-school',
     text: `体育館に着くと、親友は少し照れたように「来たの」と言った。\n来て正解だったのかどうか、その日の練習が終わるまで分からなかった。`,
     choices: null,
-    next: 'july_result'
+    next: 'july_end'
   },
 
   july_try_react_b: {
@@ -546,7 +546,7 @@ const EVENTS = {
     background: 'summer-school',
     text: `親友はうなずいた。\n「うん、やってみる」\n言葉は短かった。でも、少しだけ目が違った。`,
     choices: null,
-    next: 'july_result'
+    next: 'july_end'
   },
 
   july_try_react_c: {
@@ -556,16 +556,145 @@ const EVENTS = {
     background: 'summer-school',
     text: `親友の背中が遠くなる。\n振り返らなかった。\nそれが、答えなのかもしれなかった。`,
     choices: null,
-    next: 'july_result'
+    next: 'july_end'
   },
 
-  july_result: {
+  july_end: {
     month: '7月',
     title: '夏の始まり',
     speaker: null,
     background: 'summer-sky',
+    text: `7月が終わる。夏休みが始まった。`,
+    choices: null,
+    next: 'august_news'
+  },
+
+  // ── 8月 ─────────────────────────────────────────────────
+
+  august_news: {
+    month: '8月',
+    title: '',
+    speaker: null,
+    background: 'summer-sky',
+    text: `夏休みのある日。\nテレビのニュースで、南の島が水没の危機にあると伝えていた。\nアナウンサーは淡々と読み上げて、次のニュースに移った。\nワタは、そこだけ少し長く画面を見ていた。`,
+    choices: null,
+    next: 'august_news_branch'
+  },
+
+  august_news_branch: {
+    month: '8月',
+    title: '',
+    speaker: null,
+    background: 'summer-sky',
     text: null,
     choices: null,
-    type: 'result'
+    type: 'branch',
+    branch: {
+      condition: 'dreamPattern',
+      ifClean:  'august_dream_clean',
+      ifLate:   'august_dream_late',
+      ifMid:    'august_dream_mid',
+      ifEarly:  'august_dream_early'
+    }
+  },
+
+  august_dream_early: {
+    month: '8月',
+    title: '',
+    speaker: '{friend}',
+    background: 'night-room',
+    text: `その夜、{friend}から短いメッセージが来た。\n「すごく怖い夢を見た」\n「なんの夢か、うまく言えないんだけど」\n「ただ、すごく怖かった」`,
+    choices: null,
+    next: 'august_night'
+  },
+
+  august_dream_mid: {
+    month: '8月',
+    title: '',
+    speaker: '{friend}',
+    background: 'night-room',
+    text: `翌日、{friend}は言った。\n「昨日、夢見た」\n「たくさん死んでた。知らない人も、知ってる人も」\n少し間があって、\n「自分もすぐそこにいる感じがした」\n笑わなかった。`,
+    choices: null,
+    next: 'august_night'
+  },
+
+  august_dream_late: {
+    month: '8月',
+    title: '',
+    speaker: '{friend}',
+    background: 'night-room',
+    text: `翌日、{friend}は言った。\n「世界、終わると思う？」\n冗談に聞こえなかった。\n「{friendPronoun}、夢で見た。全部沈んでいくやつ」\n少し間があって、\n「助けなきゃいけない気がする」`,
+    choices: null,
+    next: 'august_night'
+  },
+
+  august_dream_clean: {
+    month: '8月',
+    title: '',
+    speaker: '{friend}',
+    background: 'night-room',
+    text: `その夜、{friend}から短いメッセージが来た。\n「あの島の人たち、どこ行くんだろうね」\nミナトは少し考えてから、返事を打った。`,
+    choices: [
+      {
+        text: '「どこかに移れるといいね」',
+        effects: { depth: 1, seeds: { groupHope: 1 } },
+        next: 'august_night'
+      },
+      {
+        text: '「誰かが助けるんじゃないかな」',
+        effects: { trust: 1 },
+        next: 'august_night'
+      },
+      {
+        text: '「分からないけど、一緒に考えようか」',
+        effects: { trust: 2, depth: 1, seeds: { friendIndependence: 1 } },
+        next: 'august_night'
+      },
+    ]
+  },
+
+  august_night: {
+    month: '8月　夜',
+    title: '',
+    speaker: null,
+    background: 'night-room',
+    text: `夏の夜は長い。\n今夜、自分は何をするか。`,
+    choices: [
+      {
+        text: '{friend}に返事を書く',
+        category: 'think',
+        next: 'september_start'
+      },
+      {
+        text: 'ニュースの島のことを調べてみる',
+        category: 'study',
+        next: 'september_start'
+      },
+      {
+        text: '今夜は休む',
+        category: 'rest',
+        next: 'september_start'
+      },
+    ]
+  },
+
+  september_start: {
+    month: '9月',
+    title: '夏が終わる',
+    speaker: null,
+    background: 'school-hallway',
+    text: `夏休みが終わった。\n{friend}は、いつもと変わらない顔で登校してきた。\nあの夜のことは、何も言わなかった。`,
+    choices: null,
+    next: 'chapter1_end'
+  },
+
+  chapter1_end: {
+    month: '',
+    title: '',
+    speaker: null,
+    background: 'summer-sky',
+    text: `── 1章、ここまで ──`,
+    choices: null,
+    next: null
   }
 };

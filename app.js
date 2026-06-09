@@ -70,7 +70,8 @@ const state = {
     friendIndependence:3,
   },
   seeds: {},
-  flags: [],
+  flags: ['崩壊の記憶'],
+  clearedEndings: [],
   log:   [],
 };
 
@@ -316,7 +317,7 @@ function renderEvent(eventId) {
       !c.flagRequired || state.flags.includes(c.flagRequired)
     );
     visibleChoices.forEach((choice, i) => {
-      const btn = makeBtn(choice.text, 'choice-btn fade-in');
+      const btn = makeBtn(replaceName(choice.text), 'choice-btn fade-in');
       btn.style.animationDelay = `${i * 0.08}s`;
       btn.addEventListener('click', () => handleChoice(event, choice));
       choicesArea.appendChild(btn);
@@ -330,9 +331,19 @@ function resolveBranch(event) {
 
   if (b.condition === 'groupVsTwoWorld') {
     result = (state.seeds.groupParticipation || 0) > (state.seeds.twoPersonWorld || 0);
+    renderEvent(result ? b.ifTrue : b.ifFalse);
+    return;
   }
 
-  renderEvent(result ? b.ifTrue : b.ifFalse);
+  if (b.condition === 'dreamPattern') {
+    const noMemory = !state.flags.includes('崩壊の記憶');
+    const endings  = (state.clearedEndings || []).length;
+    if (noMemory)       { renderEvent(b.ifClean); return; }
+    if (endings >= 4)   { renderEvent(b.ifLate);  return; }
+    if (endings >= 2)   { renderEvent(b.ifMid);   return; }
+    renderEvent(b.ifEarly);
+    return;
+  }
 }
 
 function handleChoice(event, choice) {
@@ -404,7 +415,7 @@ function renderResult() {
   } else {
     body += '何かが始まったのか、それとも何かが終わったのか、まだ分からなかった。';
   }
-  body += '\n\n── 4月〜7月、ここまで。';
+  body += '\n\n── 1章前半、ここまで。';
 
   const textEl = document.getElementById('event-text');
   textEl.classList.remove('fade-in');
@@ -432,10 +443,11 @@ function renderResult() {
     });
   }
 
-  const note = document.createElement('p');
-  note.className = 'end-note';
-  note.textContent = '── プロトタイプ終了 ──';
-  choicesArea.appendChild(note);
+  const continueBtn = makeBtn('夏へ', 'choice-btn continue-btn');
+  continueBtn.addEventListener('click', () => {
+    renderEvent('august_news');
+  });
+  choicesArea.appendChild(continueBtn);
 
   updateSidePanel();
 }
@@ -566,6 +578,72 @@ function closePanel() {
 document.getElementById('panel-toggle').addEventListener('click', openPanel);
 document.getElementById('panel-close').addEventListener('click', closePanel);
 document.getElementById('panel-overlay').addEventListener('click', closePanel);
+
+// ── Skip panel ──────────────────────────────────────────────
+
+const SKIP_TREE = [
+  { label: 'プロローグ',   id: 'prologue_start' },
+  { label: '4月：部活紹介', id: 'april_mid' },
+  { label: '4月：帰り道',  id: 'april_night' },
+  { label: '4月：夜',      id: 'april_night_own' },
+  { label: '5月：ボール',  id: 'may_ball' },
+  { label: '5月：夜',      id: 'may_night' },
+  { label: '6月：早退',    id: 'june_family' },
+  { label: '6月：夜',      id: 'june_night' },
+  { label: '7月：一回だけ', id: 'july_try' },
+  { label: '7月：夏の始まり', id: 'july_end' },
+  { label: '8月：ニュース', id: 'august_news' },
+  { label: '8月：夢（序盤）', id: 'august_dream_early' },
+  { label: '8月：夢（中盤）', id: 'august_dream_mid' },
+  { label: '8月：夢（終盤）', id: 'august_dream_late' },
+  { label: '8月：夢（記憶なし）', id: 'august_dream_clean' },
+  { label: '8月：夜',      id: 'august_night' },
+  { label: '9月',          id: 'september_start' },
+];
+
+function openSkipPanel() {
+  const overlay = document.getElementById('panel-overlay');
+  const panel   = document.createElement('div');
+  panel.id = 'skip-panel';
+
+  const header = document.createElement('div');
+  header.className = 'skip-panel-header';
+  const title = document.createElement('span');
+  title.textContent = 'スキップ';
+  title.style.cssText = 'font-size:0.85rem;color:var(--accent);font-weight:bold;';
+  const closeBtn = makeBtn('✕', '');
+  closeBtn.style.cssText = 'background:none;border:none;color:var(--text-sub);font-size:1.1rem;cursor:pointer;';
+  closeBtn.addEventListener('click', closeSkipPanel);
+  header.appendChild(title);
+  header.appendChild(closeBtn);
+  panel.appendChild(header);
+
+  const list = document.createElement('div');
+  list.style.cssText = 'overflow-y:auto;flex:1;padding:8px 14px 20px;';
+  SKIP_TREE.forEach(item => {
+    const btn = makeBtn(item.label, 'choice-btn');
+    btn.style.cssText = 'margin-bottom:5px;font-size:0.82rem;';
+    btn.addEventListener('click', () => {
+      closeSkipPanel();
+      renderEvent(item.id);
+    });
+    list.appendChild(btn);
+  });
+  panel.appendChild(list);
+
+  document.getElementById('app').appendChild(panel);
+  overlay.classList.remove('hidden');
+  overlay.onclick = closeSkipPanel;
+}
+
+function closeSkipPanel() {
+  const panel = document.getElementById('skip-panel');
+  if (panel) panel.remove();
+  document.getElementById('panel-overlay').classList.add('hidden');
+  document.getElementById('panel-overlay').onclick = null;
+}
+
+document.getElementById('skip-toggle').addEventListener('click', openSkipPanel);
 
 // ── Start ───────────────────────────────────────────────────
 
