@@ -154,6 +154,7 @@ html, body {
 #choices-area {
   flex: 1 1 0;
   min-height: 80px;
+  max-height: 55vh;
   padding: 8px 10px 10px;
   background: rgba(4, 4, 16, 0.95);
   display: flex;
