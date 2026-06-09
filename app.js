@@ -77,6 +77,13 @@ const state = {
   flags: ['崩壊の記憶'],
   clearedEndings: [],
   log:   [],
+  ch2: {
+    capital: 3,
+    network: 3,
+    risk: 1,
+    stage: 1,
+    friendPath: null,
+  },
 };
 
 function hasTitle(id) {
@@ -114,6 +121,116 @@ function getConditionIcon() {
   if (c <= 6)  return '😐';
   if (c <= 9)  return '🙂';
   return '✨';
+}
+
+// ── Chapter 2 ────────────────────────────────────────────────
+
+function applyC2Effects(effects) {
+  if (!effects) return;
+  if (effects.capital  !== undefined) state.ch2.capital  = Math.max(0, state.ch2.capital  + effects.capital);
+  if (effects.network  !== undefined) state.ch2.network  = Math.max(0, state.ch2.network  + effects.network);
+  if (effects.risk     !== undefined) state.ch2.risk     = Math.max(0, state.ch2.risk     + effects.risk);
+}
+
+function getC2ResourceLabel() {
+  return `資金${state.ch2.capital} 組織力${state.ch2.network} 世評リスク${state.ch2.risk}`;
+}
+
+function determineFriendPath() {
+  // 1章の種からワタの進路を決定
+  const two   = state.seeds.twoPersonWorld     || 0;
+  const group = state.seeds.groupParticipation || 0;
+  const sci   = state.seeds.scienceTechnology  || 0;
+  const prop  = state.seeds.prophecy           || 0;
+
+  if (prop >= 2)   return 'prophet';    // 予言者・思想系
+  if (sci >= 2)    return 'scientist';  // 科学・技術系
+  if (two >= 3)    return 'hermit';     // 閉じたコミュニティ
+  if (group >= 2)  return 'organizer';  // 集団・組織系
+  return 'drifter';                     // 漂流・定まらない
+}
+
+function renderChapter2Event(eventId) {
+  state.currentEventId = eventId;
+
+  if (eventId === 'deep_current') {
+    renderEvent('deep_current');
+    return;
+  }
+
+  const event = CH2_EVENTS[eventId];
+  if (!event) return;
+
+  if (event.type === 'c2branch') {
+    resolveC2Branch(event);
+    return;
+  }
+
+  document.getElementById('background-area').className = `bg-${event.background || 'school-hallway'}`;
+  document.getElementById('month-label').textContent  = event.month || '';
+  document.getElementById('event-title').textContent  = event.title || '';
+  document.getElementById('speaker-area').style.visibility = 'hidden';
+
+  // リソース表示
+  const textEl = document.getElementById('event-text');
+  textEl.classList.remove('fade-in');
+  void textEl.offsetWidth;
+
+  let displayText = replaceName(event.text) || '';
+  if (event.showResources) {
+    displayText += `\n\n［ ${getC2ResourceLabel()} ］`;
+  }
+  textEl.textContent = displayText;
+  textEl.classList.add('fade-in');
+  document.getElementById('text-area').scrollTop = 0;
+
+  const choicesArea = document.getElementById('choices-area');
+  choicesArea.innerHTML = '';
+
+  if (!event.choices) {
+    const btn = makeBtn('続ける', 'choice-btn continue-btn');
+    btn.addEventListener('click', () => {
+      if (event.effects) applyC2Effects(event.effects);
+      renderChapter2Event(event.next);
+    });
+    choicesArea.appendChild(btn);
+  } else {
+    event.choices.forEach((choice, i) => {
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'display:flex;align-items:center;gap:6px;';
+
+      const btn = makeBtn(replaceName(choice.text), 'choice-btn fade-in');
+      btn.style.animationDelay = `${i * 0.08}s`;
+      btn.style.flex = '1';
+      btn.addEventListener('click', () => {
+        if (choice.effects) applyC2Effects(choice.effects);
+        if (choice.also)    applyEffects(choice.also);
+        addLog(`[2章] ${choice.text}`);
+        renderChapter2Event(choice.next);
+      });
+      wrapper.appendChild(btn);
+
+      if (state.debugMode && hasTitle('recorder') && choice.effects) {
+        const hint = document.createElement('span');
+        hint.className = 'debug-effect-hint';
+        const parts = [];
+        if (choice.effects.capital  !== undefined) parts.push(`資金${choice.effects.capital > 0 ? '+' : ''}${choice.effects.capital}`);
+        if (choice.effects.network  !== undefined) parts.push(`組織${choice.effects.network > 0 ? '+' : ''}${choice.effects.network}`);
+        if (choice.effects.risk     !== undefined) parts.push(`リスク${choice.effects.risk > 0 ? '+' : ''}${choice.effects.risk}`);
+        hint.textContent = parts.join(' ');
+        wrapper.appendChild(hint);
+      }
+
+      choicesArea.appendChild(wrapper);
+    });
+  }
+}
+
+function resolveC2Branch(event) {
+  const path = state.ch2.friendPath || determineFriendPath();
+  state.ch2.friendPath = path;
+  const next = event.branch[path] || event.branch.default;
+  renderChapter2Event(next);
 }
 
 // ── Night categories ────────────────────────────────────────
@@ -754,6 +871,12 @@ function renderEvent(eventId) {
     return;
   }
 
+  if (eventId === 'chapter2_start') {
+    state.ch2.friendPath = determineFriendPath();
+    renderChapter2Event('c2_opening');
+    return;
+  }
+
   const event = EVENTS[eventId];
   if (!event) return;
 
@@ -1116,6 +1239,9 @@ const SKIP_TREE = [
   { label: '卒業の夜',     id: 'graduation_night' },
   { label: '1章終わり',    id: 'chapter1_end' },
   { label: '深層海流',     id: 'deep_current' },
+  { label: '2章：冒頭',   id: 'chapter2_start' },
+  { label: '2章：S1応答', id: 'c2_s1_player_response' },
+  { label: '2章：S1終わり', id: 'c2_s1_end' },
 ];
 
 function openSkipPanel() {

@@ -956,3 +956,172 @@ const EVENTS = {
     next: 'deep_current'
   }
 };
+
+// ── 2章イベント ──────────────────────────────────────────────
+
+const CH2_EVENTS = {
+
+  c2_opening: {
+    month: '20代・序章',
+    title: '大人になった',
+    background: 'school-hallway',
+    text: `中学を卒業して、数年が経った。\n{player}は自分の道を歩き始めていた。\n{friend}とは、たまに連絡を取り合っていた。\nそれで十分だと思っていた。`,
+    choices: null,
+    next: 'c2_friend_path_branch'
+  },
+
+  c2_friend_path_branch: {
+    type: 'c2branch',
+    branch: {
+      prophet:    'c2_s1_prophet',
+      scientist:  'c2_s1_scientist',
+      hermit:     'c2_s1_hermit',
+      organizer:  'c2_s1_organizer',
+      drifter:    'c2_s1_drifter',
+      default:    'c2_s1_drifter',
+    }
+  },
+
+  // ── ステージ1：ワタの暴走 ────────────────────────────────
+
+  c2_s1_prophet: {
+    month: '22歳',
+    title: 'ワタからの手紙',
+    background: 'night-room',
+    text: `{friend}から、久しぶりに長い手紙が来た。\n「世界は終わる方向に向かっている。\nぼくにはそれが見える。\n正しい場所に、正しい人を集めなければならない」\n読み終えて、しばらく画面を見つめた。`,
+    showResources: true,
+    choices: null,
+    next: 'c2_s1_player_response'
+  },
+
+  c2_s1_scientist: {
+    month: '22歳',
+    title: 'ワタからの手紙',
+    background: 'night-room',
+    text: `{friend}から連絡が来た。\n「海面上昇のデータを集めている。\n政府も企業も動かない。\n自分たちで動くしかない」\n添付されていたスプレッドシートには、\n膨大な数字が並んでいた。`,
+    showResources: true,
+    choices: null,
+    next: 'c2_s1_player_response'
+  },
+
+  c2_s1_hermit: {
+    month: '22歳',
+    title: 'ワタからの手紙',
+    background: 'night-room',
+    text: `{friend}から連絡が来た。\n「信頼できる人たちと、静かに暮らせる場所を探している。\n外の世界には、もう期待していない」\n写真が添付されていた。\n山の中の、古い民家だった。`,
+    showResources: true,
+    choices: null,
+    next: 'c2_s1_player_response'
+  },
+
+  c2_s1_organizer: {
+    month: '22歳',
+    title: 'ワタからの手紙',
+    background: 'night-room',
+    text: `{friend}から連絡が来た。\n「環境活動のグループを立ち上げた。\nまだ小さいけど、仲間が集まってきている。\n一度、話を聞きに来ない？」\n文面は明るかった。\nでも、少し急いでいるように見えた。`,
+    showResources: true,
+    choices: null,
+    next: 'c2_s1_player_response'
+  },
+
+  c2_s1_drifter: {
+    month: '22歳',
+    title: 'ワタからの手紙',
+    background: 'night-room',
+    text: `{friend}から久しぶりに連絡が来た。\n「最近、いろいろ考えている。\nうまく言えないけど、\nこのままじゃいけない気がして」\nそれだけだった。`,
+    showResources: true,
+    choices: null,
+    next: 'c2_s1_player_response'
+  },
+
+  // ── ステージ1：主人公の翻訳 ──────────────────────────────
+
+  c2_s1_player_response: {
+    month: '22歳',
+    title: 'どう動くか',
+    background: 'night-room',
+    text: `{friend}の言葉を、どう受け取るか。\nそして、自分は何をするか。`,
+    showResources: true,
+    choices: [
+      {
+        text: '応援する返事を書く',
+        effects: { network: 1, risk: 0 },
+        also: { trust: 1 },
+        next: 'c2_s1_react_support'
+      },
+      {
+        text: '現実的な方法を提案する',
+        effects: { capital: 1, risk: 1 },
+        also: { intelligence: 1 },
+        next: 'c2_s1_react_translate'
+      },
+      {
+        text: '直接会いに行く',
+        effects: { network: 2, risk: 0 },
+        also: { trust: 2, stamina: -1 },
+        next: 'c2_s1_react_visit'
+      },
+      {
+        text: 'しばらく様子を見る',
+        effects: { capital: 1, risk: 0 },
+        also: { depth: 1 },
+        next: 'c2_s1_react_watch'
+      },
+    ]
+  },
+
+  c2_s1_react_support: {
+    month: '22歳',
+    title: '',
+    background: 'night-room',
+    text: `返事を書いた。\n応援している、と。\n{friend}からすぐに返信が来た。\n「ありがとう。それだけで十分」\nその言葉が、少し重かった。`,
+    choices: null,
+    next: 'c2_s1_end'
+  },
+
+  c2_s1_react_translate: {
+    month: '22歳',
+    title: '',
+    background: 'night-room',
+    text: `具体的な方法をいくつか調べて送った。\n補助金の情報、NPOの立ち上げ方法。\n{friend}からの返信は短かった。\n「そういうことじゃないんだけどな」`,
+    choices: null,
+    next: 'c2_s1_end'
+  },
+
+  c2_s1_react_visit: {
+    month: '22歳',
+    title: '',
+    background: 'evening-road',
+    text: `直接会いに行った。\n{friend}は少し驚いた顔をして、\nそれから笑った。\n久しぶりに、本物の笑顔を見た気がした。`,
+    choices: null,
+    next: 'c2_s1_end'
+  },
+
+  c2_s1_react_watch: {
+    month: '22歳',
+    title: '',
+    background: 'night-room',
+    text: `返事は書かなかった。\nもう少し状況を見てから、と思った。\n数日後、{friend}からまた連絡が来た。\n「元気？」\nそれだけだった。`,
+    choices: null,
+    next: 'c2_s1_end'
+  },
+
+  c2_s1_end: {
+    month: '22歳',
+    title: 'ステージ1終わり',
+    background: 'night-room',
+    text: `{friend}の動きは、まだ始まったばかりだった。\n{player}も、自分の道を歩き続けた。`,
+    showResources: true,
+    choices: null,
+    next: 'c2_chapter_end'
+  },
+
+  c2_chapter_end: {
+    month: '',
+    title: '',
+    background: 'summer-sky',
+    text: `── 2章 ステージ1、ここまで ──`,
+    choices: null,
+    next: 'deep_current'
+  },
+};
