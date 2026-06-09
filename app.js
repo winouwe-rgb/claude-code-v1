@@ -312,6 +312,23 @@ function renderDeepReview(endSeeds, choicesArea) {
   playLabel.textContent = `${state.playCount}周目の記録`;
   section.appendChild(playLabel);
 
+  // 厳選フラグ
+  const hitFlags = Object.entries(HIGHLIGHT_FLAGS)
+    .filter(([flag]) => state.flags.includes(flag));
+  if (hitFlags.length > 0) {
+    const flagLabel = document.createElement('p');
+    flagLabel.className = 'result-seeds-label';
+    flagLabel.style.marginTop = '10px';
+    flagLabel.textContent = 'この人生の記憶：';
+    section.appendChild(flagLabel);
+    hitFlags.forEach(([, text]) => {
+      const row = document.createElement('div');
+      row.className = 'result-seed-row';
+      row.textContent = `◆ ${text}`;
+      section.appendChild(row);
+    });
+  }
+
   // この人生で得た称号
   const earnedTitles = TITLES.filter(t => state.clearedEndings.includes(t.id));
   if (earnedTitles.length > 0) {

@@ -331,11 +331,6 @@ const EVENTS = {
         next: 'june_family'
       },
       {
-        text: 'あの嘘、本当のことを考える',
-        category: 'think',
-        next: 'june_family'
-      },
-      {
         text: '何も考えないようにする',
         category: 'rest',
         next: 'june_family'
