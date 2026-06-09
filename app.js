@@ -57,6 +57,8 @@ const state = {
   playerName: 'ミナト',
   friendName: 'ワタ',
   friendPronoun: 'ぼく',
+  playCount: 1,
+  carryOverSeeds: {},
   stats: {
     intelligence:      5,
     stamina:           5,
@@ -64,7 +66,7 @@ const state = {
     depth:             5,
     luck:              5,
     condition:         5,
-    trust:             5,
+    trust:             7,
     friendDistance:    5,
     friendAnxiety:     3,
     friendIndependence:3,
@@ -194,10 +196,252 @@ function computeResultSeeds() {
   return { hasApproval, hasTogether, hasIndependence };
 }
 
+// ── Deep Current ────────────────────────────────────────────
+
+const SEED_CARRY_LIMIT = 3;
+
+function renderDeepCurrent() {
+  // クリア時の種を保存
+  const endSeeds = Object.fromEntries(
+    Object.entries(state.seeds).filter(([, v]) => v > 0)
+  );
+
+  document.getElementById('background-area').className = 'bg-deep-current';
+  document.getElementById('month-label').textContent  = '';
+  document.getElementById('event-title').textContent  = '深層海流';
+  document.getElementById('speaker-area').style.visibility = 'hidden';
+
+  const textEl = document.getElementById('event-text');
+  textEl.classList.remove('fade-in');
+  void textEl.offsetWidth;
+  const introText = state.playCount === 1
+    ? 'ここ、知ってる気がする。\nなぜかは分からない。でも、確かに。'
+    : 'またここに来た。';
+  textEl.textContent = introText;
+  textEl.classList.add('fade-in');
+  document.getElementById('text-area').scrollTop = 0;
+
+  // タブ表示
+  const choicesArea = document.getElementById('choices-area');
+  choicesArea.innerHTML = '';
+
+  renderDeepTab('review', endSeeds, choicesArea);
+}
+
+function renderDeepTab(tab, endSeeds, choicesArea) {
+  choicesArea.innerHTML = '';
+
+  // タブボタン
+  const tabRow = document.createElement('div');
+  tabRow.className = 'deep-tab-row';
+  [['review', '振り返り'], ['seeds', '種を選ぶ'], ['settings', '設定'], ['depart', '出発']].forEach(([id, label]) => {
+    const btn = makeBtn(label, `deep-tab-btn${tab === id ? ' active' : ''}`);
+    btn.addEventListener('click', () => renderDeepTab(id, endSeeds, choicesArea));
+    tabRow.appendChild(btn);
+  });
+  choicesArea.appendChild(tabRow);
+
+  if (tab === 'review') {
+    renderDeepReview(endSeeds, choicesArea);
+  } else if (tab === 'seeds') {
+    renderDeepSeeds(endSeeds, choicesArea);
+  } else if (tab === 'settings') {
+    renderDeepSettings(endSeeds, choicesArea);
+  } else if (tab === 'depart') {
+    renderDeepDepart(endSeeds, choicesArea);
+  }
+}
+
+function renderDeepReview(endSeeds, choicesArea) {
+  const section = document.createElement('div');
+  section.className = 'deep-section';
+
+  const seedKeys = Object.keys(endSeeds);
+  if (seedKeys.length === 0) {
+    const empty = document.createElement('p');
+    empty.className = 'empty-note';
+    empty.textContent = 'この人生で種は残らなかった。';
+    section.appendChild(empty);
+  } else {
+    const label = document.createElement('p');
+    label.className = 'result-seeds-label';
+    label.textContent = 'この人生で残った種：';
+    section.appendChild(label);
+    seedKeys.forEach(k => {
+      const row = document.createElement('div');
+      row.className = 'result-seed-row';
+      row.textContent = `🌱 ${SEED_DISPLAY[k] || k}  ×${endSeeds[k]}`;
+      section.appendChild(row);
+    });
+  }
+
+  const playLabel = document.createElement('p');
+  playLabel.className = 'empty-note';
+  playLabel.style.marginTop = '10px';
+  playLabel.textContent = `${state.playCount}周目の記録`;
+  section.appendChild(playLabel);
+
+  choicesArea.appendChild(section);
+}
+
+function renderDeepSeeds(endSeeds, choicesArea) {
+  const section = document.createElement('div');
+  section.className = 'deep-section';
+
+  const label = document.createElement('p');
+  label.className = 'result-seeds-label';
+  label.textContent = `次の人生に持ち出す種（最大${SEED_CARRY_LIMIT}個）：`;
+  section.appendChild(label);
+
+  const selected = new Set(Object.keys(state.carryOverSeeds));
+  const seedKeys = Object.keys(endSeeds);
+
+  if (seedKeys.length === 0) {
+    const empty = document.createElement('p');
+    empty.className = 'empty-note';
+    empty.textContent = '持ち出せる種がない。';
+    section.appendChild(empty);
+  } else {
+    seedKeys.forEach(k => {
+      const row = document.createElement('div');
+      row.className = `deep-seed-row${selected.has(k) ? ' selected' : ''}`;
+      row.textContent = `${selected.has(k) ? '✓ ' : '　'}🌱 ${SEED_DISPLAY[k] || k}  ×${endSeeds[k]}`;
+      row.addEventListener('click', () => {
+        if (selected.has(k)) {
+          selected.delete(k);
+          delete state.carryOverSeeds[k];
+        } else if (selected.size < SEED_CARRY_LIMIT) {
+          selected.add(k);
+          state.carryOverSeeds[k] = endSeeds[k];
+        }
+        renderDeepTab('seeds', endSeeds, choicesArea);
+      });
+      section.appendChild(row);
+    });
+  }
+
+  const countLabel = document.createElement('p');
+  countLabel.className = 'empty-note';
+  countLabel.style.marginTop = '8px';
+  countLabel.textContent = `選択中：${selected.size} / ${SEED_CARRY_LIMIT}`;
+  section.appendChild(countLabel);
+
+  choicesArea.appendChild(section);
+}
+
+function renderDeepSettings(endSeeds, choicesArea) {
+  const section = document.createElement('div');
+  section.className = 'deep-section';
+
+  const label = document.createElement('p');
+  label.className = 'result-seeds-label';
+  label.textContent = '名前を変更する：';
+  section.appendChild(label);
+
+  const playerRow = document.createElement('div');
+  playerRow.className = 'name-input-row';
+  const playerLabel = document.createElement('label');
+  playerLabel.textContent = 'あなた';
+  playerLabel.className = 'name-input-label';
+  const playerInput = document.createElement('input');
+  playerInput.type = 'text';
+  playerInput.value = state.playerName;
+  playerInput.maxLength = 8;
+  playerInput.className = 'name-input-field';
+  playerRow.appendChild(playerLabel);
+  playerRow.appendChild(playerInput);
+
+  const friendRow = document.createElement('div');
+  friendRow.className = 'name-input-row';
+  const friendLabel = document.createElement('label');
+  friendLabel.textContent = '親友';
+  friendLabel.className = 'name-input-label';
+  const friendInput = document.createElement('input');
+  friendInput.type = 'text';
+  friendInput.value = state.friendName;
+  friendInput.maxLength = 8;
+  friendInput.className = 'name-input-field';
+  friendRow.appendChild(friendLabel);
+  friendRow.appendChild(friendInput);
+
+  const btn = makeBtn('変更する', 'choice-btn continue-btn');
+  btn.style.marginTop = '8px';
+  btn.addEventListener('click', () => {
+    const p = playerInput.value.trim();
+    const f = friendInput.value.trim();
+    if (p) state.playerName = p;
+    if (f) state.friendName = f;
+    renderDeepTab('settings', endSeeds, choicesArea);
+  });
+
+  section.appendChild(playerRow);
+  section.appendChild(friendRow);
+  section.appendChild(btn);
+  choicesArea.appendChild(section);
+}
+
+function renderDeepDepart(endSeeds, choicesArea) {
+  const section = document.createElement('div');
+  section.className = 'deep-section';
+
+  const label = document.createElement('p');
+  label.className = 'result-seeds-label';
+  label.textContent = '次の人生へ出発する。';
+  section.appendChild(label);
+
+  if (Object.keys(state.carryOverSeeds).length > 0) {
+    const seedLabel = document.createElement('p');
+    seedLabel.className = 'empty-note';
+    seedLabel.textContent = '持ち出す種：';
+    section.appendChild(seedLabel);
+    Object.keys(state.carryOverSeeds).forEach(k => {
+      const row = document.createElement('div');
+      row.className = 'result-seed-row';
+      row.textContent = `🌱 ${SEED_DISPLAY[k] || k}`;
+      section.appendChild(row);
+    });
+  }
+
+  const btn = makeBtn('出発する', 'choice-btn continue-btn');
+  btn.style.marginTop = '12px';
+  btn.addEventListener('click', () => {
+    startNewLife();
+  });
+  section.appendChild(btn);
+  choicesArea.appendChild(section);
+}
+
+function startNewLife() {
+  const carry = { ...state.carryOverSeeds };
+  const count = state.playCount + 1;
+  const player = state.playerName;
+  const friend = state.friendName;
+  const cleared = [...state.clearedEndings];
+
+  // stateリセット
+  state.playCount = count;
+  state.playerName = player;
+  state.friendName = friend;
+  state.friendPronoun = 'ぼく';
+  state.carryOverSeeds = {};
+  state.stats = {
+    intelligence: 5, stamina: 5, popularity: 5,
+    depth: 5, luck: 5, condition: 5,
+    trust: 7, friendDistance: 5,
+    friendAnxiety: 3, friendIndependence: 3,
+  };
+  state.seeds = { ...carry };
+  state.flags = ['崩壊の記憶'];
+  state.clearedEndings = cleared;
+  state.log = [];
+
+  renderEvent('prologue_start');
+}
+
 // ── Name input ──────────────────────────────────────────────
 
 function renderNameInput() {
-  document.getElementById('background-area').className = 'bg-spring-day';
+  document.getElementById('background-area').className = 'bg-deep-current';
   document.getElementById('month-label').textContent  = '';
   document.getElementById('event-title').textContent  = '';
   document.getElementById('speaker-area').style.visibility = 'hidden';
@@ -258,6 +502,11 @@ function renderEvent(eventId) {
 
   if (eventId === 'name_input') {
     renderNameInput();
+    return;
+  }
+
+  if (eventId === 'deep_current') {
+    renderDeepCurrent();
     return;
   }
 
@@ -608,6 +857,7 @@ const SKIP_TREE = [
   { label: '卒業',         id: 'graduation' },
   { label: '卒業の夜',     id: 'graduation_night' },
   { label: '1章終わり',    id: 'chapter1_end' },
+  { label: '深層海流',     id: 'deep_current' },
 ];
 
 function openSkipPanel() {

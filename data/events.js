@@ -958,6 +958,6 @@ const EVENTS = {
     background: 'summer-sky',
     text: `── 1章、ここまで ──`,
     choices: null,
-    next: null
+    next: 'deep_current'
   }
 };
