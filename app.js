@@ -49,6 +49,7 @@ const SEED_DISPLAY = {
   prophecy:           '予言',
   clubWithdrawal:     '部活離脱',
   friendIndependence: '親友の自立',
+  leadership:         'リーダーの種',
 };
 
 // Game state
@@ -84,7 +85,67 @@ const state = {
     stage: 1,
     friendPath: null,
   },
+  ch3: {
+    phase: 'survival',
+    wataMood: 5,
+    distance: 5,
+    food: 3,
+    water: 3,
+    safety: 3,
+    trust: 5,
+    anxiety: 4,
+    resource: 0,
+    drive: 0,
+    margin: 0,
+    capital: 0,
+    diplomacy: 0,
+    record: 0,
+    clams: 8,            // 貝在庫（採取で増え、釣りで消費。枯渇すると採取不可）
+    clamMax: 8,          // 貝の上限（採取を重ねるほど上限が下がる）
+    crew: [],
+    turnCount: 0,
+    devTurns: 0,
+    assignment: {},
+  },
 };
+
+// ── クルー定義 ────────────────────────────────────────────────
+// ステータスはランク制（S>A>B>C>D）。RANK_VALで数値化。
+const RANK_VAL = { S: 5, A: 4, B: 3, C: 2, D: 1 };
+
+// 全クルーのマスターデータ
+const CREW_MASTER = {
+  minato: {
+    name: '{player}', body: 'C', tech: 'B', wisdom: 'B', charm: 'B',
+    special: null, desc: 'あなた自身。',
+  },
+  angler: {
+    name: '釣りの人', body: 'B', tech: 'C', wisdom: 'C', charm: 'B',
+    special: 'food', desc: '海から食料を獲るのが得意。',
+  },
+  survivalist: {
+    name: 'サバイバルの達人', body: 'A', tech: 'B', wisdom: 'C', charm: 'B',
+    special: 'survival', desc: '食料・水・住居を一人で確保できる。',
+  },
+  diver: {
+    name: '潜りの人', body: 'A', tech: 'C', wisdom: 'C', charm: 'C',
+    special: 'dive', desc: '海中から物を拾ってくる。',
+  },
+};
+
+// 周回・状況に応じて初期クルーを構築
+function buildInitialCrew() {
+  const crew = ['minato', 'angler'];
+  if (state.playCount >= 2) crew.push('survivalist');
+  if (state.playCount >= 2) crew.push('diver'); // 1周目はダイバー不要
+  return crew;
+}
+
+function crewStat(crewId, stat) {
+  const c = CREW_MASTER[crewId];
+  if (!c) return 0;
+  return RANK_VAL[c[stat]] || 0;
+}
 
 function hasTitle(id) {
   return state.unlockedTitles.includes(id);
@@ -231,6 +292,508 @@ function resolveC2Branch(event) {
   state.ch2.friendPath = path;
   const next = event.branch[path] || event.branch.default;
   renderChapter2Event(next);
+}
+
+// ── Chapter 3 ────────────────────────────────────────────────
+
+function applyC3Effects(effects) {
+  if (!effects) return;
+  const c = state.ch3;
+  const keys = ['wataMood','distance','food','water','safety','trust','anxiety','resource','drive','margin','capital','diplomacy','record'];
+  keys.forEach(k => {
+    if (effects[k] !== undefined) c[k] = Math.max(0, c[k] + effects[k]);
+  });
+}
+
+function getC3ResourceLabel() {
+  const c = state.ch3;
+  if (c.phase === 'survival') {
+    return `食料${c.food} 水${c.water} 安全${c.safety} 信頼${c.trust} 不安${c.anxiety} 貝${c.clams}`;
+  }
+  if (c.phase === 'stability') {
+    return `食料${c.food} 水${c.water} 安全${c.safety} 信頼${c.trust} 不安${c.anxiety}\n資源${c.resource} 実行力${c.drive} 余白${c.margin}`;
+  }
+  return `資金${c.capital} 外交${c.diplomacy} 記録${c.record} 余白${c.margin} 不安${c.anxiety}`;
+}
+
+function getC3PhaseLabel() {
+  const c = state.ch3;
+  if (c.phase === 'survival')     return 'サバイバル';
+  if (c.phase === 'stability')    return '安定';
+  return '発展';
+}
+
+function renderChapter3Event(eventId) {
+  state.currentEventId = eventId;
+
+  if (eventId === 'deep_current') {
+    renderEvent('deep_current');
+    return;
+  }
+
+  if (eventId === 'action_turn') {
+    renderActionTurn();
+    return;
+  }
+
+  const event = CH3_EVENTS[eventId];
+  if (!event) return;
+
+  if (event.type === 'c3branch') {
+    resolveC3Branch(event);
+    return;
+  }
+
+  // フェーズ移行
+  if (event.setPhase) {
+    state.ch3.phase = event.setPhase;
+  }
+
+  document.getElementById('background-area').className = `bg-${event.background || 'rainy-evening'}`;
+  document.getElementById('month-label').textContent  = event.month || getC3PhaseLabel();
+  document.getElementById('event-title').textContent  = event.title || '';
+
+  const speakerArea = document.getElementById('speaker-area');
+  const speakerName = document.getElementById('speaker-name');
+  if (event.speaker) {
+    speakerName.textContent = replaceName(event.speaker);
+    speakerArea.style.visibility = 'visible';
+  } else {
+    speakerArea.style.visibility = 'hidden';
+  }
+
+  const textEl = document.getElementById('event-text');
+  textEl.classList.remove('fade-in');
+  void textEl.offsetWidth;
+
+  let displayText = replaceName(event.text) || '';
+  if (event.showResources) {
+    displayText += `\n\n［ ${getC3ResourceLabel()} ］`;
+  }
+  textEl.textContent = displayText;
+  textEl.classList.add('fade-in');
+  document.getElementById('text-area').scrollTop = 0;
+
+  const choicesArea = document.getElementById('choices-area');
+  choicesArea.innerHTML = '';
+
+  if (!event.choices) {
+    const btn = makeBtn('続ける', 'choice-btn continue-btn');
+    btn.addEventListener('click', () => {
+      if (event.effects) applyC3Effects(event.effects);
+      renderChapter3Event(event.next);
+    });
+    choicesArea.appendChild(btn);
+  } else {
+    event.choices.forEach((choice, i) => {
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'display:flex;align-items:center;gap:6px;';
+
+      const btn = makeBtn(replaceName(choice.text), 'choice-btn fade-in');
+      btn.style.animationDelay = `${i * 0.08}s`;
+      btn.style.flex = '1';
+      btn.addEventListener('click', () => {
+        if (choice.effects) applyC3Effects(choice.effects);
+        if (choice.also)    applyEffects(choice.also);
+        addLog(`[3章] ${choice.text}`);
+        renderChapter3Event(choice.next);
+      });
+      wrapper.appendChild(btn);
+
+      if (state.debugMode && hasTitle('recorder') && choice.effects) {
+        const hint = document.createElement('span');
+        hint.className = 'debug-effect-hint';
+        hint.textContent = formatC3EffectHint(choice.effects);
+        wrapper.appendChild(hint);
+      }
+
+      choicesArea.appendChild(wrapper);
+    });
+  }
+}
+
+function formatC3EffectHint(effects) {
+  if (!effects) return '';
+  const labelMap = { wataMood:'調子', distance:'距離', food:'食料', water:'水', safety:'安全', trust:'信頼', anxiety:'不安', resource:'資源', drive:'実行力', margin:'余白', capital:'資金', diplomacy:'外交', record:'記録' };
+  const parts = [];
+  Object.entries(effects).forEach(([k, v]) => {
+    if (labelMap[k]) parts.push(`${labelMap[k]}${v > 0 ? '+' : ''}${v}`);
+  });
+  return parts.join(' ');
+}
+
+function resolveC3Branch(event) {
+  const path = state.ch2.friendPath || determineFriendPath();
+  const next = event.branch[path] || event.branch.default;
+  renderChapter3Event(next);
+}
+
+// ── Chapter 3 行動ターン ──────────────────────────────────────
+// 問題ボックスにクルーを配置して実行。成果はクルーのステータスで変動。
+
+// フェーズごとの問題ボックス定義
+// stat: 成果計算に使う主ステータス／effects: 1ポイントあたりの基本変動
+const C3_PROBLEMS = {
+  survival: [
+    { id: 'water',  label: '水を集める',     stat: 'body',   effects: { water: 1 },
+      desc: '雨水・露を集める。人数が多いほど効率が上がる。' },
+    { id: 'clam',   label: '貝を採取する',   stat: 'body',   effects: { clams: 2 },
+      desc: '岩礁の貝を拾う。採り続けると枯渇する。', requireClams: false },
+    { id: 'fish',   label: '貝を餌に釣りをする', stat: 'body', effects: { food: 2 },
+      desc: '貝を消費して魚を釣る。貝がないと実行できない。', requireClams: true },
+    { id: 'safety', label: '安全な場所を整える', stat: 'tech', effects: { safety: 1 },
+      desc: '波や風から身を守る場所を作る。' },
+    { id: 'care',   label: 'ワタに寄り添う',  stat: 'charm', effects: { trust: 1, anxiety: -1, distance: -1 },
+      desc: '不安が高まるワタの話を聞く。' },
+  ],
+  stability: [
+    { id: 'build',  label: '住居・倉庫を作る', stat: 'tech',  effects: { resource: 1, margin: 1 } },
+    { id: 'supply', label: '食料と水を安定させる', stat: 'body', effects: { food: 1, water: 1 } },
+    { id: 'order',  label: '決まりごとを整える', stat: 'wisdom', effects: { drive: 1, trust: 1 } },
+    { id: 'care',   label: 'ワタに寄り添う',   stat: 'charm',  effects: { trust: 1, anxiety: -1 } },
+  ],
+  development: [
+    { id: 'trade',  label: '外の島とつながる', stat: 'charm',  effects: { diplomacy: 1 } },
+    { id: 'fund',   label: '暮らしを富ませる', stat: 'tech',   effects: { capital: 1 } },
+    { id: 'record', label: '記録を残す',       stat: 'wisdom', effects: { record: 1, margin: 1 } },
+    { id: 'care',   label: 'ワタに寄り添う',   stat: 'charm',  effects: { trust: 1, anxiety: -1 } },
+  ],
+};
+
+// フェーズ移行の条件判定
+function checkPhaseAdvance() {
+  const c = state.ch3;
+  if (c.phase === 'survival') {
+    // ワタへの信頼が一定値でコミュニティの長へ
+    return c.trust >= 8;
+  }
+  if (c.phase === 'stability') {
+    // leadershipの種が花（9以上）＋基本リソース充足
+    const leadershipFlower = (state.seeds.leadership || 0) >= 9;
+    const basics = c.food >= 5 && c.water >= 5 && c.safety >= 5 && c.trust >= 8;
+    return leadershipFlower && basics;
+  }
+  return false; // 発展フェーズの先はエンディング（未実装）
+}
+
+// 配置をリセット
+function resetAssignment() {
+  state.ch3.assignment = {};
+  // サバイバルフェーズはワタを貝採取に固定で戻す
+  if (state.ch3.phase === 'survival') {
+    state.ch3.assignment['clam'] = ['wata'];
+  }
+}
+
+// 行動ターン画面を描画
+function renderActionTurn() {
+  const c = state.ch3;
+  if (!c.assignment) c.assignment = {};
+
+  // ワタをサバイバルの「貝を採取」に固定配置
+  if (c.phase === 'survival') {
+    if (!c.assignment['clam']) c.assignment['clam'] = [];
+    if (!c.assignment['clam'].includes('wata')) {
+      c.assignment['clam'].push('wata');
+    }
+  }
+
+  document.getElementById('background-area').className = 'bg-rainy-evening';
+  document.getElementById('month-label').textContent = `${getC3PhaseLabel()}・ターン${c.turnCount + 1}`;
+  document.getElementById('event-title').textContent = '行動を決める';
+  document.getElementById('speaker-area').style.visibility = 'hidden';
+
+  const textEl = document.getElementById('event-text');
+  const clamInfo = c.phase === 'survival' ? `　貝の在庫：${c.clams}（上限${c.clamMax}）` : '';
+  textEl.textContent = `取り組む問題に、人を割り当てよう。\n\n［ ${getC3ResourceLabel()} ］${clamInfo}`;
+
+  const problems = C3_PROBLEMS[c.phase] || [];
+  const choicesArea = document.getElementById('choices-area');
+  choicesArea.innerHTML = '';
+
+  // どのクルーがどのボックスに配置されているか
+  const assignedTo = {}; // crewId → probId
+  Object.entries(c.assignment).forEach(([probId, arr]) => {
+    arr.forEach(id => { assignedTo[id] = probId; });
+  });
+
+  // 全クルーリスト（ワタ含む）
+  const allCrew = ['wata', ...(c.crew || [])];
+
+  problems.forEach(prob => {
+    const clamLocked = prob.requireClams && c.clams <= 0;
+    const clamDepleted = prob.id === 'clam' && c.clamMax <= 0;
+    const probLocked = clamLocked || clamDepleted;
+
+    const box = document.createElement('div');
+    box.style.cssText = `background:rgba(255,255,255,${probLocked ? '0.02' : '0.05'});border:1px solid rgba(255,255,255,${probLocked ? '0.07' : '0.15'});border-radius:8px;padding:8px 10px;margin-bottom:6px;`;
+
+    // ボックスのタイトル
+    const head = document.createElement('div');
+    head.style.cssText = 'font-size:0.82rem;color:var(--text-main);margin-bottom:3px;';
+    head.textContent = prob.label;
+    if (probLocked) head.textContent += clamLocked ? '　※貝がない' : '　※貝が枯渇した';
+    box.appendChild(head);
+
+    if (prob.desc) {
+      const desc = document.createElement('div');
+      desc.style.cssText = 'font-size:0.7rem;color:var(--text-sub);margin-bottom:6px;';
+      desc.textContent = prob.desc;
+      box.appendChild(desc);
+    }
+
+    // 全員のチップを表示
+    const chipRow = document.createElement('div');
+    chipRow.style.cssText = 'display:flex;flex-wrap:wrap;gap:5px;';
+
+    allCrew.forEach(cid => {
+      const isWata = cid === 'wata';
+      const name = isWata ? replaceName('{friend}') : replaceName(CREW_MASTER[cid]?.name || cid);
+      const myProb = assignedTo[cid]; // このクルーが配置されているボックスID
+      const isHere = myProb === prob.id; // このボックスに配置済み
+      const isElsewhere = myProb && myProb !== prob.id; // 別のボックスに配置済み
+
+      const chip = document.createElement(isWata || isElsewhere || probLocked ? 'span' : 'button');
+      chip.textContent = name;
+
+      let chipStyle = 'font-size:0.78rem;padding:5px 10px;border-radius:6px;font-family:inherit;';
+      if (isWata) {
+        // ワタ：配置されているボックスは赤、それ以外はグレー
+        if (isHere) {
+          chipStyle += 'background:rgba(255,80,80,0.15);border:1px solid rgba(255,80,80,0.5);color:#ff8080;cursor:default;';
+        } else {
+          chipStyle += 'background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.2);cursor:default;';
+        }
+      } else if (isHere) {
+        // このボックスにオン：オレンジ
+        chipStyle += 'background:var(--accent-dim);border:1px solid rgba(232,168,124,0.5);color:var(--accent);cursor:pointer;';
+      } else if (isElsewhere) {
+        // 別のボックスにいる：グレー
+        chipStyle += 'background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.25);cursor:default;';
+      } else {
+        // 未配置：白
+        chipStyle += 'background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.25);color:var(--text-main);cursor:pointer;';
+      }
+      chip.style.cssText = chipStyle;
+
+      // タップ処理（ワタ・別ボックス・ロック中は無効）
+      if (!isWata && !isElsewhere && !probLocked) {
+        chip.addEventListener('click', () => {
+          if (isHere) {
+            // オフ
+            c.assignment[prob.id] = (c.assignment[prob.id] || []).filter(x => x !== cid);
+          } else {
+            // オン
+            if (!c.assignment[prob.id]) c.assignment[prob.id] = [];
+            c.assignment[prob.id].push(cid);
+          }
+          renderActionTurn();
+        });
+      }
+
+      chipRow.appendChild(chip);
+    });
+
+    box.appendChild(chipRow);
+    choicesArea.appendChild(box);
+  });
+
+  const execBtn = makeBtn('この配置で実行する', 'choice-btn continue-btn');
+  execBtn.style.marginTop = '8px';
+  execBtn.addEventListener('click', executeActionTurn);
+  choicesArea.appendChild(execBtn);
+}
+
+// 配置を実行して成果を反映
+function executeActionTurn() {
+  const c = state.ch3;
+  const problems = C3_PROBLEMS[c.phase] || [];
+  const resultLines = [];
+  const eventLines = [];
+
+  // ── 行動の成果 ──────────────────────────────────────────
+  problems.forEach(prob => {
+    const assigned = c.assignment[prob.id] || [];
+    if (!assigned.length) return;
+
+    // 貝が必要なのに在庫0なら実行不可
+    if (prob.requireClams && c.clams <= 0) return;
+    // 採取が枯渇上限に達したら実行不可
+    if (prob.id === 'clam' && c.clamMax <= 0) return;
+
+    let power = 0;
+    assigned.forEach(id => {
+      if (id === 'wata') power += 2;
+      else power += crewStat(id, prob.stat);
+    });
+
+    const r = Math.random();
+    let mult = 1;
+    let tone = '';
+    if (r < 0.10)      { mult = 1.5; tone = 'good'; }
+    else if (r > 0.90) { mult = 0.5; tone = 'bad'; }
+
+    const scaled = Math.max(1, Math.round((power / 2) * mult));
+    const toneText = tone === 'good' ? '（うまくいった）' : tone === 'bad' ? '（空回りした）' : '';
+
+    // 貝採取：在庫増加・上限を下げる（枯渇に向かう）
+    if (prob.id === 'clam') {
+      const gain = Math.max(0, Math.min(scaled * 2, c.clamMax - c.clams + 2));
+      c.clams = Math.min(c.clamMax, c.clams + gain);
+      c.clamMax = Math.max(0, c.clamMax - 1);
+      resultLines.push(`貝を採取した（在庫${c.clams}、残り上限${c.clamMax}）${toneText}`);
+      return;
+    }
+
+    // 釣り：貝を消費して食料を得る
+    if (prob.id === 'fish') {
+      const clamCost = Math.min(2, c.clams);
+      c.clams = Math.max(0, c.clams - clamCost);
+      applyC3Effects({ food: scaled * 2 });
+      resultLines.push(`釣りをした（貝${clamCost}個消費→食料+${scaled * 2}）${toneText}`);
+      return;
+    }
+
+    const eff = {};
+    Object.entries(prob.effects).forEach(([k, v]) => { eff[k] = v * scaled; });
+    applyC3Effects(eff);
+
+    assigned.forEach(id => {
+      if (id === 'wata') return;
+      const sp = CREW_MASTER[id]?.special;
+      if (sp === 'dive')     applyC3Effects({ resource: 1 });
+      if (sp === 'survival') applyC3Effects({ food: 1, water: 1, safety: 1 });
+      if (sp === 'food')     applyC3Effects({ food: 1 });
+    });
+
+    const names = assigned.filter(id => id !== 'wata').map(id => replaceName(CREW_MASTER[id]?.name || id)).join('・');
+    const wataStr = assigned.includes('wata') ? replaceName('{friend}') + (names ? '・' : '') : '';
+    resultLines.push(`${prob.label}：${wataStr}${names}${toneText}`);
+  });
+
+  // ── 人数に応じた消費 ────────────────────────────────────
+  const crewCount = (c.crew || []).length + 1; // クルー＋ワタ
+  const foodConsume = Math.ceil(crewCount * 0.5);
+  const waterConsume = Math.ceil(crewCount * 0.5);
+  applyC3Effects({ food: -foodConsume, water: -waterConsume });
+
+  // ── ランダムイベント（ターンごとに起きる出来事） ──────────────
+  const randomEvents = getRandomTurnEvent(c.phase, c.turnCount);
+  randomEvents.forEach(ev => {
+    applyC3Effects(ev.effects || {});
+    eventLines.push(ev.text);
+  });
+
+  // ── 安定フェーズ：leadershipの種を育てる ──────────────────
+  if (c.phase === 'stability' && c.trust >= 6) {
+    state.seeds.leadership = (state.seeds.leadership || 0) + 2;
+  }
+
+  c.turnCount++;
+  if (c.phase === 'development') c.devTurns++;
+  resetAssignment();
+
+  renderActionResult(resultLines, eventLines);
+}
+
+// ターンごとのランダムイベント定義
+function getRandomTurnEvent(phase, turn) {
+  const events = [];
+
+  if (phase === 'survival') {
+    const r = Math.random();
+    if (r < 0.20) {
+      // 1周目は雨が降りやすい（水を尽きさせない設計）
+      const rainBonus = state.playCount === 1 ? 0.45 : 0.20;
+      if (Math.random() < rainBonus) {
+        events.push({ text: '雨が降った。水を集めた。', effects: { water: 2 } });
+      } else if (r < 0.10) {
+        events.push({ text: '波が荒れた。安全な場所が削られた。', effects: { safety: -1 } });
+      } else {
+        events.push({ text: '流れ着いたものを拾った。', effects: { resource: 1 } });
+      }
+    }
+  }
+
+  if (phase === 'stability') {
+    const r = Math.random();
+    if (r < 0.15) {
+      events.push({ text: '仲間の間でもめごとがあった。', effects: { trust: -1 } });
+    } else if (r < 0.25) {
+      events.push({ text: '外から人が流れ着いた。', effects: { drive: 1 } });
+    }
+  }
+
+  if (phase === 'development') {
+    const r = Math.random();
+    if (r < 0.15) {
+      events.push({ text: '遠くから船影が見えた。', effects: { diplomacy: 1 } });
+    } else if (r < 0.25) {
+      events.push({ text: '記録をつけていた人が倒れた。', effects: { record: -1, anxiety: 1 } });
+    }
+  }
+
+  return events;
+}
+
+// 行動結果を表示
+function renderActionResult(lines, eventLines) {
+  const c = state.ch3;
+  document.getElementById('background-area').className = 'bg-school-grounds';
+  document.getElementById('month-label').textContent = `${getC3PhaseLabel()}・ターン${c.turnCount}`;
+  document.getElementById('event-title').textContent = '結果';
+  document.getElementById('speaker-area').style.visibility = 'hidden';
+
+  // 行動結果
+  let body = lines.length ? lines.join('\n') : '今回は誰も動かなかった。';
+
+  // ターンの出来事
+  if (eventLines && eventLines.length) {
+    body += '\n\n── 今ターンの出来事 ──\n' + eventLines.join('\n');
+  }
+
+  // リソース表示（警告付き）
+  const warns = [];
+  if (c.food <= 1)  warns.push('食料が残りわずか');
+  if (c.water <= 1) warns.push('水が残りわずか');
+  if (c.safety <= 1) warns.push('安全な場所がなくなりつつある');
+  const warnText = warns.length ? '\n⚠️ ' + warns.join('　') : '';
+
+  body += `\n\n［ ${getC3ResourceLabel()} ］${warnText}`;
+
+  document.getElementById('event-text').textContent = body;
+
+  const choicesArea = document.getElementById('choices-area');
+  choicesArea.innerHTML = '';
+
+  // リソース危機でゲームオーバーチェック
+  if (c.food <= 0 && c.water <= 0 && state.playCount === 1) {
+    // 1周目固有エンドへ
+    const btn = makeBtn('……', 'choice-btn continue-btn');
+    btn.addEventListener('click', () => renderChapter3Event('c3_end_round1'));
+    choicesArea.appendChild(btn);
+    return;
+  }
+
+  const btn = makeBtn('続ける', 'choice-btn continue-btn');
+  btn.addEventListener('click', () => {
+    if (c.phase === 'development') {
+      if (c.devTurns >= 3) {
+        renderChapter3Event('c3_dev_choice');
+      } else {
+        renderActionTurn();
+      }
+    } else if (checkPhaseAdvance()) {
+      if (c.phase === 'survival') {
+        renderChapter3Event('c3_wata_declare1');
+      } else if (c.phase === 'stability') {
+        renderChapter3Event('c3_wata_declare2');
+      }
+    } else {
+      renderActionTurn();
+    }
+  });
+  choicesArea.appendChild(btn);
 }
 
 // ── Night categories ────────────────────────────────────────
@@ -877,6 +1440,28 @@ function renderEvent(eventId) {
     return;
   }
 
+  if (eventId === 'chapter3_start') {
+    state.ch3.phase = 'survival';
+    state.ch3.crew = buildInitialCrew();
+    state.ch3.turnCount = 0;
+    renderChapter3Event('c3_opening');
+    return;
+  }
+
+  // 2章・3章の個別イベントへの直接ジャンプ（スキップ用）
+  if (typeof CH2_EVENTS !== 'undefined' && CH2_EVENTS[eventId]) {
+    if (!state.ch2.friendPath) state.ch2.friendPath = determineFriendPath();
+    renderChapter2Event(eventId);
+    return;
+  }
+  if (typeof CH3_EVENTS !== 'undefined' && CH3_EVENTS[eventId]) {
+    if (!state.ch3.crew || state.ch3.crew.length === 0) {
+      state.ch3.crew = buildInitialCrew();
+    }
+    renderChapter3Event(eventId);
+    return;
+  }
+
   const event = EVENTS[eventId];
   if (!event) return;
 
@@ -1212,36 +1797,46 @@ document.getElementById('panel-overlay').addEventListener('click', closePanel);
 // ── Skip panel ──────────────────────────────────────────────
 
 const SKIP_TREE = [
-  { label: 'プロローグ',   id: 'prologue_start' },
-  { label: '4月：部活紹介', id: 'april_mid' },
-  { label: '4月：帰り道',  id: 'april_night' },
-  { label: '4月：夜',      id: 'april_night_own' },
-  { label: '5月：ボール',  id: 'may_ball' },
-  { label: '5月：夜',      id: 'may_night' },
-  { label: '6月：早退',    id: 'june_family' },
-  { label: '6月：夜',      id: 'june_night' },
-  { label: '7月：一回だけ', id: 'july_try' },
-  { label: '7月：夏の始まり', id: 'july_end' },
-  { label: '8月：ニュース', id: 'august_news' },
-  { label: '8月：夢（序盤）', id: 'august_dream_early' },
-  { label: '8月：夢（中盤）', id: 'august_dream_mid' },
-  { label: '8月：夢（終盤）', id: 'august_dream_late' },
-  { label: '8月：夢（記憶なし）', id: 'august_dream_clean' },
-  { label: '8月：夜',      id: 'august_night' },
-  { label: '9月',          id: 'september_start' },
-  { label: '2年秋：新学期', id: 'autumn_class' },
-  { label: '2年秋：夜',    id: 'autumn_night' },
-  { label: '3年春：進路',  id: 'grade3_start' },
-  { label: '3年春：夜',    id: 'grade3_night' },
-  { label: '3年夏：図書館', id: 'summer3_study' },
-  { label: '3年夏：夜',    id: 'summer3_night' },
-  { label: '卒業',         id: 'graduation' },
-  { label: '卒業の夜',     id: 'graduation_night' },
-  { label: '1章終わり',    id: 'chapter1_end' },
-  { label: '深層海流',     id: 'deep_current' },
-  { label: '2章：冒頭',   id: 'chapter2_start' },
-  { label: '2章：S1応答', id: 'c2_s1_player_response' },
-  { label: '2章：S1終わり', id: 'c2_s1_end' },
+  { label: '1章：中学生編', children: [
+    { label: 'プロローグ',        id: 'prologue_start' },
+    { label: '4月：部活紹介',     id: 'april_mid' },
+    { label: '4月：帰り道',       id: 'april_night' },
+    { label: '4月：夜',           id: 'april_night_own' },
+    { label: '5月：ボール',       id: 'may_ball' },
+    { label: '5月：夜',           id: 'may_night' },
+    { label: '6月：早退',         id: 'june_family' },
+    { label: '6月：夜',           id: 'june_night' },
+    { label: '7月：一回だけ',     id: 'july_try' },
+    { label: '7月：夏の始まり',   id: 'july_end' },
+    { label: '8月：ニュース',     id: 'august_news' },
+    { label: '8月：夢（序盤）',   id: 'august_dream_early' },
+    { label: '8月：夢（中盤）',   id: 'august_dream_mid' },
+    { label: '8月：夢（終盤）',   id: 'august_dream_late' },
+    { label: '8月：夢（記憶なし）', id: 'august_dream_clean' },
+    { label: '8月：夜',           id: 'august_night' },
+    { label: '9月',               id: 'september_start' },
+    { label: '2年秋：新学期',     id: 'autumn_class' },
+    { label: '2年秋：夜',         id: 'autumn_night' },
+    { label: '3年春：進路',       id: 'grade3_start' },
+    { label: '3年春：夜',         id: 'grade3_night' },
+    { label: '3年夏：図書館',     id: 'summer3_study' },
+    { label: '3年夏：夜',         id: 'summer3_night' },
+    { label: '卒業',              id: 'graduation' },
+    { label: '卒業の夜',          id: 'graduation_night' },
+    { label: '1章終わり',         id: 'chapter1_end' },
+  ]},
+  { label: '2章：成人期', children: [
+    { label: '冒頭',     id: 'chapter2_start' },
+    { label: 'S1：応答', id: 'c2_s1_player_response' },
+    { label: 'S1：終わり', id: 'c2_s1_end' },
+  ]},
+  { label: '3章：島国家編', children: [
+    { label: '冒頭',       id: 'chapter3_start' },
+    { label: '宣言①',     id: 'c3_wata_declare1' },
+    { label: '安定フェーズ', id: 'c3_stability_start' },
+    { label: '宣言②',     id: 'c3_wata_declare2' },
+    { label: '発展フェーズ', id: 'c3_development_start' },
+  ]},
 ];
 
 function openSkipPanel() {
@@ -1263,14 +1858,43 @@ function openSkipPanel() {
 
   const list = document.createElement('div');
   list.style.cssText = 'overflow-y:auto;flex:1;padding:8px 14px 20px;';
+
   SKIP_TREE.forEach(item => {
-    const btn = makeBtn(item.label, 'choice-btn');
-    btn.style.cssText = 'margin-bottom:5px;font-size:0.82rem;';
-    btn.addEventListener('click', () => {
-      closeSkipPanel();
-      renderEvent(item.id);
-    });
-    list.appendChild(btn);
+    if (item.id && !item.children) {
+      // 単独アイテム（深層海流など）
+      const btn = makeBtn(item.label, 'choice-btn');
+      btn.style.cssText = 'margin-bottom:5px;font-size:0.82rem;';
+      btn.addEventListener('click', () => { closeSkipPanel(); renderEvent(item.id); });
+      list.appendChild(btn);
+    } else if (item.children) {
+      // 折りたたみグループ
+      const group = document.createElement('div');
+      group.style.marginBottom = '5px';
+
+      const groupBtn = document.createElement('button');
+      groupBtn.textContent = `▶ ${item.label}`;
+      groupBtn.style.cssText = `width:100%;padding:8px 12px;background:rgba(232,168,124,0.12);border:1px solid rgba(232,168,124,0.3);border-radius:7px;color:var(--accent);font-size:0.82rem;font-family:inherit;text-align:left;cursor:pointer;`;
+
+      const children = document.createElement('div');
+      children.style.cssText = 'display:none;padding:4px 0 2px 10px;';
+
+      item.children.forEach(child => {
+        const btn = makeBtn(child.label, 'choice-btn');
+        btn.style.cssText = 'margin-bottom:4px;font-size:0.78rem;opacity:0.9;';
+        btn.addEventListener('click', () => { closeSkipPanel(); renderEvent(child.id); });
+        children.appendChild(btn);
+      });
+
+      groupBtn.addEventListener('click', () => {
+        const isOpen = children.style.display !== 'none';
+        children.style.display = isOpen ? 'none' : 'block';
+        groupBtn.textContent = `${isOpen ? '▶' : '▼'} ${item.label}`;
+      });
+
+      group.appendChild(groupBtn);
+      group.appendChild(children);
+      list.appendChild(group);
+    }
   });
   panel.appendChild(list);
 

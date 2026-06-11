@@ -1125,3 +1125,164 @@ const CH2_EVENTS = {
     next: 'deep_current'
   },
 };
+
+// ── 3章イベント ──────────────────────────────────────────────
+
+const CH3_EVENTS = {
+
+  // ── サバイバルフェーズ（1ターン＝1日） ──────────────────────
+
+  c3_opening: {
+    setPhase: 'survival',
+    month: 'サバイバル',
+    title: '海が来た',
+    background: 'rainy-evening',
+    text: `海面上昇は、ある日突然だった。\nいくつもの土地が沈み、{player}と{friend}は流れ着いた島で目を覚ました。\n周りには、同じように流れ着いた人が何人かいる。\nまずは、今日を生き延びることだった。`,
+    showResources: true,
+    choices: null,
+    next: 'action_turn'
+  },
+
+  // ── フェーズ移行：ワタの宣言①（個人→コミュニティの長） ──
+
+  c3_wata_declare1: {
+    setPhase: 'survival',
+    month: 'サバイバル・転機',
+    title: 'ワタの宣言',
+    speaker: '{friend}',
+    background: 'night-room',
+    text: `「ねえ、{player}」\n「ぼく、みんなをまとめたいんだ」\n「このままバラバラだと、きっとまた誰かが消えちゃう」\n{friend}の目は、いつになく真剣だった。`,
+    showResources: true,
+    choices: [
+      {
+        text: '「いいと思う。やってみよう」',
+        effects: { trust: 1, anxiety: -1 },
+        also: { seeds: { leadership: 3 } },
+        next: 'c3_stability_start'
+      },
+      {
+        text: '「焦らなくていい。まだ早い」',
+        effects: { distance: 1, anxiety: 1 },
+        also: { seeds: { leadership: 2 } },
+        next: 'c3_stability_start'
+      },
+      {
+        text: '「ぼくも手伝う。一緒にやろう」',
+        effects: { trust: 2, distance: -1 },
+        also: { seeds: { leadership: 3 } },
+        next: 'c3_stability_start'
+      },
+    ]
+  },
+
+  // ── 安定フェーズ（1ターン＝1週間） ──────────────────────────
+
+  c3_stability_start: {
+    setPhase: 'stability',
+    month: '安定',
+    title: 'コミュニティ',
+    background: 'school-grounds',
+    text: `{friend}は、人をまとめる役割を引き受けた。\n生きるだけだった日々が、暮らしに変わっていく。\n1週間ごとに、考えることが増えてきた。`,
+    showResources: true,
+    choices: null,
+    next: 'action_turn'
+  },
+
+  // ── フェーズ移行：ワタの宣言②（コミュニティの長→国王） ──
+
+  c3_wata_declare2: {
+    setPhase: 'stability',
+    month: '安定・転機',
+    title: 'ワタの宣言',
+    speaker: '{friend}',
+    background: 'night-room',
+    text: `「{player}、ここを国にしよう」\n「ちゃんとした国。みんなが安心して暮らせる場所」\n{friend}の声は落ち着いていた。\nでもその奥に、まだあの不安が残っているのが分かった。`,
+    showResources: true,
+    choices: [
+      {
+        text: '「お前が決めたなら、ついていく」',
+        effects: { trust: 2, distance: -1 },
+        next: 'c3_development_start'
+      },
+      {
+        text: '「国にする前に、確かめたいことがある」',
+        effects: { anxiety: -1, margin: 1 },
+        next: 'c3_development_start'
+      },
+      {
+        text: '「本当に、それでいいのか？」',
+        effects: { distance: 1, anxiety: 1 },
+        next: 'c3_development_start'
+      },
+    ]
+  },
+
+  // ── 発展フェーズ（1ターン＝1ヶ月） ─────────────────────────
+  // ※発展フェーズとカウントダウンは本来3周目から解放（骨格では仮通し）
+
+  c3_development_start: {
+    setPhase: 'development',
+    month: '発展',
+    title: '国のはじまり',
+    background: 'summer-sky',
+    text: `{friend}は、王になった。\nあの{friend}が、人々の前に立っている。\n資源は資金に変わり、外の世界とのやりとりも始まった。\n（世界崩壊まで　○年○ヶ月）`,
+    showResources: true,
+    choices: null,
+    next: 'action_turn'
+  },
+
+  c3_dev_choice: {
+    month: '発展・数ヶ月',
+    title: 'どんな国にするか',
+    background: 'summer-sky',
+    text: `国の方向を決める時が来た。\n{friend}は{player}の意見を聞きたがっている。`,
+    showResources: true,
+    choices: [
+      {
+        text: '外の島々とつながりを広げる',
+        effects: { diplomacy: 2, record: 1 },
+        next: 'c3_dev_react'
+      },
+      {
+        text: '自分たちの暮らしを深める',
+        effects: { capital: 2, margin: 1 },
+        next: 'c3_dev_react'
+      },
+      {
+        text: '起きたことを記録に残していく',
+        effects: { record: 2, margin: 1 },
+        next: 'c3_dev_react'
+      },
+    ]
+  },
+
+  c3_dev_react: {
+    month: '発展・数ヶ月',
+    title: '',
+    background: 'summer-sky',
+    text: `国は、少しずつ色を持ち始めた。\nそれが何色なのかは、まだ{player}にも分からない。`,
+    showResources: true,
+    choices: null,
+    next: 'c3_chapter_end'
+  },
+
+  c3_chapter_end: {
+    month: '',
+    title: '',
+    background: 'summer-sky',
+    text: `── 3章 骨格、ここまで ──\n\n（エンディング分岐は今後実装）`,
+    choices: null,
+    next: 'deep_current'
+  },
+
+  // ── 1周目固有エンド ───────────────────────────────────────
+
+  c3_end_round1: {
+    month: '',
+    title: '',
+    background: 'rainy-evening',
+    text: `水が尽きた。\n貝も、もうなかった。\n{friend}は何も言わなかった。\n{player}も、何も言えなかった。\n\n小さな岩礁の上で、二人は並んでいた。\nそれだけだった。`,
+    choices: null,
+    next: 'deep_current'
+  },
+};
