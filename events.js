@@ -961,6 +961,232 @@ const EVENTS = {
 
 const CH2_EVENTS = {
 
+  // ════════════════════════════════════════════════════════════
+  // 1周目専用：大学生→社会人→訓練の固定ストーリー
+  // ════════════════════════════════════════════════════════════
+
+  c2r1_opening: {
+    month: '大学生編',
+    title: '久しぶりの手紙',
+    background: 'night-room',
+    text: `{friend}から手紙が来た。\n\n「久しぶり。元気にしてる？\nこの世界、なんだか平和ボケしてるよね。\nつまらない足の引っ張り合いばかりで、\nみんな自分のこと、今のことしか考えてない。\nぼくたちは、この世界のことを考えて、\nひとつにならなきゃいけないと思うんだ」\n\nどう返していいか、分からなかった。`,
+    choices: null,
+    next: 'c2r1_paper_plane'
+  },
+
+  c2r1_paper_plane: {
+    month: '大学生編',
+    title: '',
+    background: 'night-room',
+    text: `書きかけの返事を、最後まで書けなかった。\n便箋を折って、紙飛行機にした。\n窓から飛ばすと、夜の中へ消えていった。\n\n（紙飛行機が落ちるまでが、ひとつの区切り）`,
+    choices: null,
+    next: 'c2r1_action_turn'
+  },
+
+  // ステージ1で「ワタを検索」を選んだとき
+  c2r1_find_stream: {
+    month: '大学生編',
+    title: 'みつけた配信',
+    background: 'night-room',
+    text: `何気なく{friend}の名前を検索した。\n\n配信が、ひとつ見つかった。\n再生回数は、一桁だった。\n\n画面の中の{friend}は、手紙と同じことを\n誰もいない空間に向かって力説していた。\n「海の底から、声がする気がするんだ」\n\nかつての親友の姿に、胸が痛んだ。`,
+    choices: null,
+    next: 'c2r1_action_turn'
+  },
+
+  c2r1_s1_end: {
+    month: '大学生編',
+    title: '時は流れる',
+    background: 'night-room',
+    text: `卒論が忙しくなった。\n{friend}のことを考える余裕も、\nだんだん無くなっていった。\n\n気づけば、{player}も社会に出ていた。`,
+    choices: null,
+    next: 'c2r1_s2_start'
+  },
+
+  // ── ステージ2：社会人編 ──────────────────────────────────
+
+  c2r1_s2_start: {
+    month: '社会人編',
+    title: '社会人になった',
+    background: 'night-room',
+    text: `{player}は働き始めた。\n忙しいけれど、お金は自分で稼げるようになった。\n\nその間も、{friend}は活動を続けていた。\nいつのまにか、配信の様子が変わっていた。`,
+    choices: null,
+    next: 'c2r1_s2_action_setup'
+  },
+
+  c2r1_s2_action_setup: {
+    month: '社会人編',
+    title: '',
+    background: 'night-room',
+    text: `{friend}の配信は、相変わらず誰にも届いていない。\nでも、放っておけなかった。\n\n（紙飛行機が落ちるまでが、ひとつの区切り）`,
+    choices: null,
+    next: 'c2r1_action_turn'
+  },
+
+  // ステージ2で「擁護コメント」を選んだとき
+  c2r1_flame_war: {
+    month: '社会人編',
+    title: 'レスバトル',
+    background: 'night-room',
+    text: `{friend}の動画に、擁護のコメントを残した。\n\nすると、すぐに返信がついた。\n知らない誰かが、{player}に絡んできた。\n反論すると、さらに人が集まってきた。\n\n気づけば、{player}はボロカスに叩かれていた。\n画面を閉じても、心臓が嫌な音を立てていた。`,
+    choices: null,
+    next: 'c2r1_action_turn'
+  },
+
+  // ステージ2で「ボートを買ってあげる」を選んだとき
+  c2r1_buy_boat: {
+    month: '社会人編',
+    title: '',
+    background: 'night-room',
+    text: `中古のボートを買って、{friend}に渡した。\n「使っていいよ」\n{friend}は、子どもみたいに喜んでいた。\n\nなぜそうしたのか、自分でもよく分からなかった。`,
+    choices: null,
+    next: 'c2r1_action_turn'
+  },
+
+  // ステージ2の締め：街頭演説を手伝うか
+  c2r1_s2_speech: {
+    month: '社会人編',
+    title: '街頭演説',
+    speaker: '{friend}',
+    background: 'night-room',
+    text: `{friend}から連絡が来た。\n「今度の週末、駅前で話をするんだ。\n……来なくていいよ」\n\nその「来なくていいよ」が、引っかかった。`,
+    choices: [
+      {
+        text: '手伝いに行く',
+        also: {},
+        next: 'c2r1_speech_help'
+      },
+      {
+        text: '行かない',
+        also: {},
+        next: 'c2r1_speech_skip'
+      },
+    ]
+  },
+
+  // 手伝った場合
+  c2r1_speech_help: {
+    month: '社会人編',
+    title: '隣に立つ',
+    background: 'night-room',
+    text: `複雑な気持ちのまま、{friend}の隣に立った。\n誰も足を止めなかった。\nそれでも{friend}は、嬉しそうだった。\n\nだが後日、その様子が配信に映っていた。\nそして、{friend}の活動が——\n嘲笑とともに、爆発的に拡散された。`,
+    choices: null,
+    next: 'c2r1_help_flame'
+  },
+
+  c2r1_help_flame: {
+    month: '社会人編',
+    title: '炎上',
+    background: 'night-room',
+    text: `隣に立っていた{player}も、一緒に晒された。\n知らない人たちに、嘲笑された。\n\n{friend}への気持ちが、初めて濁った。\n「なんで、あんなことに付き合ったんだ」\n\n人目を避けて、{player}は部屋にこもった。`,
+    choices: null,
+    next: 'c2r1_set_helped_flag'
+  },
+
+  c2r1_set_helped_flag: {
+    month: '社会人編',
+    title: '',
+    background: 'night-room',
+    text: `{friend}は、その騒ぎを逆手に取った。\n集まった注目と、わずかな支援を元手に、\n名もない島と、中古のボートを手に入れた。\n\n共鳴する人も、何人か現れたらしい。\n「島に、みんなで移り住むんだ」と{friend}は言った。`,
+    choices: null,
+    next: 'c2r1_final_invite'
+  },
+
+  // 手伝わなかった場合
+  c2r1_speech_skip: {
+    month: '社会人編',
+    title: '行かなかった',
+    background: 'night-room',
+    text: `結局、{player}は行かなかった。\n\n後日、{friend}の活動が\n嘲笑とともに拡散されているのを、画面越しに見た。\n晒される{friend}を、ただ見ていることしかできなかった。\n\n何度か連絡は来た。\nでも、どう返せばいいのか分からなかった。`,
+    choices: [
+      {
+        text: '関わるのが怖くて、応えられない',
+        next: 'c2r1_skip_withdraw'
+      },
+      {
+        text: '説得しに行く',
+        next: 'c2r1_skip_persuade'
+      },
+    ]
+  },
+
+  c2r1_skip_withdraw: {
+    month: '社会人編',
+    title: '',
+    background: 'night-room',
+    text: `関わりたくない気持ちと、\nどう接していいか分からない戸惑い。\nその間で、{player}は少しずつ消耗していった。\n\n{friend}からの連絡は、見ないようにした。`,
+    choices: null,
+    next: 'c2r1_set_skipped_flag'
+  },
+
+  c2r1_skip_persuade: {
+    month: '社会人編',
+    title: '',
+    background: 'night-room',
+    text: `{player}は{friend}に会いに行った。\nやめてほしい、現実を見てほしい、と伝えた。\n\nでも、言葉は通じなかった。\n{friend}は、{player}を見ていなかった。\nそのまま、二人は疎遠になった。\n\n後には、味気ない日々だけが残った。`,
+    choices: null,
+    next: 'c2r1_set_skipped_flag'
+  },
+
+  c2r1_set_skipped_flag: {
+    month: '社会人編',
+    title: '',
+    background: 'night-room',
+    text: `しばらくして、噂が聞こえてきた。\n{friend}が、島を買ったらしい。\n\nどこからそんなお金が出たのかは、分からなかった。\n共鳴する人たちと、移り住むつもりだという。`,
+    choices: null,
+    next: 'c2r1_final_invite'
+  },
+
+  // ── 最終ステージ：訓練への誘い ──────────────────────────
+
+  c2r1_final_invite: {
+    month: '——',
+    title: 'さいごの誘い',
+    speaker: '{friend}',
+    background: 'night-room',
+    text: `ある日、{friend}から弾んだ声で連絡が来た。\n「ねえ、島に来てよ。\nサバイバルの訓練をするんだ。\n{player}にも、ぜひ来てほしくて」\n\nこれが、引き戻せる最後のチャンスかもしれない。\nここで応じなければ、{friend}は遠くへ行ってしまう。`,
+    choices: [
+      {
+        text: '断る',
+        next: 'c2r1_cant_refuse'
+      },
+      {
+        text: '付き合う',
+        next: 'c2r1_accept'
+      },
+    ]
+  },
+
+  c2r1_cant_refuse: {
+    month: '——',
+    title: '',
+    background: 'night-room',
+    text: `断ろうとした。\nでも、どうしても言葉が出てこなかった。`,
+    choices: [
+      {
+        text: '……',
+        next: 'c2r1_accept'
+      },
+    ]
+  },
+
+  c2r1_accept: {
+    month: '——',
+    title: '島へ',
+    background: 'rainy-evening',
+    text: `{player}は、{friend}の島へ向かった。\n\n訓練のためにと、荷物はほとんど置いていった。\nナイフも、ライターも、船の中に。\n手元に残ったのは、いつものカバンだけ。\n日記と、鉛筆と、水。\n{friend}も、水筒ひとつだけだった。\n\nこれから、訓練が始まる。\nそのはずだった。`,
+    choices: null,
+    next: 'c2r1_to_ch3'
+  },
+
+  c2r1_to_ch3: {
+    month: '',
+    title: '',
+    background: 'rainy-evening',
+    text: `その夜のことを、{player}はうまく思い出せない。\n\n気がつけば——\n島も、船も、なかった。`,
+    choices: null,
+    next: 'chapter3_start'
+  },
+
   c2_opening: {
     month: '20代・序章',
     title: '大人になった',
@@ -1135,10 +1361,31 @@ const CH3_EVENTS = {
   c3_opening: {
     setPhase: 'survival',
     month: 'サバイバル',
-    title: '海が来た',
+    title: '岩礁',
     background: 'rainy-evening',
-    text: `海面上昇は、ある日突然だった。\nいくつもの土地が沈み、{player}と{friend}は流れ着いた島で目を覚ました。\n周りには、同じように流れ着いた人が何人かいる。\nまずは、今日を生き延びることだった。`,
-    showResources: true,
+    text: `目が覚めたら、岩礁の上にいた。\n{friend}が隣にいた。\n海が広がっていた。\n\n水も食料も、ほとんどない。\nここで生き延びるしかなかった。`,
+    choices: null,
+    next: 'action_turn'
+  },
+
+  // ── イソラ漂着 ─────────────────────────────────────────────
+
+  c3_isora_arrives: {
+    month: 'サバイバル',
+    title: '漂着者',
+    speaker: null,
+    background: 'rainy-evening',
+    text: `小舟が流れ着いた。\n乗っていたのは、無口な中年の男だった。\n釣り竿を持っていた。\n\n男は岩礁を見回してから、ぽつりと言った。\n「貝があるな」\n「餌になる」`,
+    choices: null,
+    next: 'c3_isora_intro'
+  },
+
+  c3_isora_intro: {
+    month: 'サバイバル',
+    title: '',
+    speaker: 'イソラ',
+    background: 'rainy-evening',
+    text: `「イソラだ。よろしくな」\nそれだけだった。\n名前以外のことは、何も言わなかった。`,
     choices: null,
     next: 'action_turn'
   },
@@ -1277,11 +1524,182 @@ const CH3_EVENTS = {
 
   // ── 1周目固有エンド ───────────────────────────────────────
 
+  c3_clam_depleted: {
+    month: 'サバイバル',
+    title: '貝が尽きた',
+    speaker: null,
+    background: 'rainy-evening',
+    text: `岩礁の貝が、完全になくなった。\n拾えるものは何もない。\n\nイソラは黙って周りを見回してから、言った。\n「まだやれる」`,
+    choices: null,
+    next: 'c3_isora_ingenuity'
+  },
+
+  c3_isora_ingenuity: {
+    month: 'サバイバル',
+    title: 'イソラの工夫',
+    speaker: null,
+    background: 'rainy-evening',
+    text: `イソラは廃材を拾い集め、魚の内臓を使って仕掛けを作り始めた。\n不格好だったが、それでも魚は釣れた。\nしばらくは凌げそうだった。\n\nそのとき、イソラが{player}を見た。\n「何か光るもの、持ってないか」`,
+    choices: null,
+    next: 'c3_item_choice_diary'
+  },
+
+  c3_item_choice_diary: {
+    month: 'サバイバル',
+    title: '2章の日記',
+    speaker: null,
+    background: 'rainy-evening',
+    text: `2章の日記が、鞄の底に残っていた。\n{friend}への手紙の下書き。送れなかった言葉たち。\n\nイソラが言う。\n「破って、内臓と混ぜれば撒き餌になる」`,
+    choices: [
+      {
+        text: '日記を破って渡す',
+        effects: {},
+        also: { seeds: { memoryBait: 1 } },
+        next: 'c3_item_diary_yes'
+      },
+      {
+        text: '渡さない',
+        effects: {},
+        next: 'c3_item_choice_keychain'
+      },
+    ]
+  },
+
+  c3_item_diary_yes: {
+    month: 'サバイバル',
+    title: '',
+    speaker: null,
+    background: 'rainy-evening',
+    text: `ページを破った。\n文字が滲んで、読めなくなった。\nイソラは無言で受け取り、内臓と混ぜ始めた。\n\n『記憶の撒き餌』`,
+    choices: null,
+    next: 'c3_item_choice_keychain'
+  },
+
+  c3_item_choice_keychain: {
+    month: 'サバイバル',
+    title: '{friend}のキーホルダー',
+    speaker: null,
+    background: 'rainy-evening',
+    text: `{friend}からもらったキーホルダーがあった。\nずっと持ち歩いていたものだ。\n\nイソラが言う。\n「反射板になる。疑似餌に使えるかもしれない」`,
+    choices: [
+      {
+        text: 'キーホルダーを使わせてほしいと頼む',
+        effects: {},
+        next: 'c3_keychain_branch'
+      },
+      {
+        text: '渡さない',
+        effects: {},
+        next: 'c3_line_breaks'
+      },
+    ]
+  },
+
+  // 手伝ったか否かで分岐
+  c3_keychain_branch: {
+    type: 'c3flag_branch',
+    flag: 'helpedSpeech',
+    ifTrue: 'c3_keychain_help',
+    ifFalse: 'c3_keychain_skip'
+  },
+
+  // 手伝った周：ワタが快く受け入れる→餌∞
+  c3_keychain_help: {
+    month: 'サバイバル',
+    title: '',
+    speaker: '{friend}',
+    background: 'rainy-evening',
+    text: `{friend}は、{player}の手元を見て、軽く笑った。\n「こんなのただの物だよ。迷うことない」\n「ぼくたちの関係は、こんなことで変わらないから」\n\nキーホルダーを、疑似餌の仕掛けに組み込んだ。\n光が、海の中で揺れた。\n\nこれで、餌を気にせず釣りができる。`,
+    choices: null,
+    next: 'c3_set_lure_infinite'
+  },
+
+  c3_set_lure_infinite: {
+    month: 'サバイバル',
+    title: '',
+    speaker: null,
+    background: 'rainy-evening',
+    text: `『光る仕掛け』\n\nしばらくは、これで魚が獲れる。`,
+    choices: null,
+    next: 'c3_line_breaks'
+  },
+
+  // 手伝わなかった周：ワタが拒絶し、海に投げる
+  c3_keychain_skip: {
+    month: 'サバイバル',
+    title: '',
+    speaker: '{friend}',
+    background: 'rainy-evening',
+    text: `キーホルダーを差し出すと、{friend}の表情が、ふっと変わった。\n「……{player}にとって、ぼくはそれくらいの存在だったんだ」\n\n{friend}はそれを奪い取ると、海に投げた。\n小さな影が、波間に消えた。\n\n疑似餌は、作れなかった。`,
+    choices: null,
+    next: 'c3_keychain_skip_silence'
+  },
+
+  c3_keychain_skip_silence: {
+    month: 'サバイバル',
+    title: '',
+    speaker: null,
+    background: 'rainy-evening',
+    text: `二人は、何も言わなかった。\n\nイソラは、濡れた手をゆっくりと拭いて、\n糸を巻き取る手を、止めた。`,
+    choices: null,
+    next: 'c3_line_breaks'
+  },
+
+  c3_item_keychain_yes: {
+    month: 'サバイバル',
+    title: '',
+    speaker: null,
+    background: 'rainy-evening',
+    text: `キーホルダーを外して渡した。\nイソラは仕掛けに組み込んだ。\n光が海面を揺れた。\n\n『光る仕掛け』`,
+    choices: null,
+    next: 'c3_line_breaks'
+  },
+
+  c3_line_breaks: {
+    month: 'サバイバル',
+    title: '糸が切れた',
+    speaker: null,
+    background: 'rainy-evening',
+    text: `何度目かに、糸が切れた。\n替えの針もない。\nイソラは仕掛けを見つめてから、静かに置いた。\n\nもう、代わりになるものがなかった。`,
+    choices: null,
+    next: 'c3_last_talk'
+  },
+
+  c3_last_talk: {
+    month: 'サバイバル',
+    title: '漕ぎ出す前に',
+    speaker: '{friend}',
+    background: 'rainy-evening',
+    text: `「大丈夫。絶対どこかに着く」\n{friend}はそう言った。\n根拠はなかった。でも、嘘をついている感じもなかった。\n\n{player}は何も言わなかった。\n覚悟、とも呼べないような何かが、静かに固まっていた。`,
+    choices: null,
+    next: 'c3_last_isora'
+  },
+
+  c3_last_isora: {
+    month: 'サバイバル',
+    title: '',
+    speaker: 'イソラ',
+    background: 'rainy-evening',
+    text: `「一か八かだ」\nイソラは船を見た。\n「でも、これしかない」`,
+    choices: null,
+    next: 'c3_set_sail'
+  },
+
+  c3_set_sail: {
+    month: 'サバイバル',
+    title: '漕ぎ出す',
+    speaker: null,
+    background: 'rainy-evening',
+    text: `三人で船に乗った。\n岩礁が遠ざかっていった。\n海は広かった。`,
+    choices: null,
+    next: 'c3_end_round1'
+  },
+
   c3_end_round1: {
     month: '',
     title: '',
-    background: 'rainy-evening',
-    text: `水が尽きた。\n貝も、もうなかった。\n{friend}は何も言わなかった。\n{player}も、何も言えなかった。\n\n小さな岩礁の上で、二人は並んでいた。\nそれだけだった。`,
+    background: 'night-room',
+    text: `── 1周目、ここまで ──`,
     choices: null,
     next: 'deep_current'
   },
